@@ -1,11 +1,17 @@
+# Use the official Golang image as the base image
 FROM golang:1.18
 
-COPY . /app
-
+# Set the working directory inside the container
 WORKDIR /app
 
-RUN go mod vendor
+# Copy the Go application files to the container
+COPY . .
 
-EXPOSE 8000
+# Build the Go application
+RUN go build -o main .
 
-CMD ["go", "run", "customer.go"]
+# Expose the port your application will run on
+EXPOSE 8080
+
+# Command to run the application
+CMD ["./main"]

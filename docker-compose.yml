@@ -4,7 +4,7 @@ services:
   customer-database:
     image: postgres:11.4
     ports:
-      - "8100:5432"
+      - "8081:5432"
     networks:
       - app-net
     environment:
@@ -17,7 +17,7 @@ services:
     depends_on:
       - customer-database
     ports:
-      - "8000:8000"
+      - "8080:8080"
     networks:
       - app-net
     env_file:
@@ -26,7 +26,7 @@ services:
   account-database:
     image: postgres:11.4
     ports:
-      - "8101:5432"
+      - "8083:5432"
     networks:
       - app-net
     environment:
@@ -39,7 +39,7 @@ services:
     depends_on:
       - account-database
     ports:
-      - "8001:8001"
+      - "8082:8082"
     networks:
       - app-net
     env_file:
