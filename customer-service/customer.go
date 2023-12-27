@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	_ "github.com/lib/pq"
 
@@ -14,74 +13,74 @@ import (
 )
 
 type createRequestBody struct {
-	Name  string `json:"customerName"`
-	Email string `json:"customerEmail"`
+	Name  string `json:"customerName" binding:"required"`
+	Email string `json:"customerEmail" binding:"required"`
 }
 
 type deleteRequestBody struct {
-	ID string `json:"customerID"`
+	ID int `json:"customerID" binding:"required"`
 }
 
 type getRequestBody struct {
-	ID string `json:"customerID"`
+	ID int `json:"customerID" binding:"required"`
 }
 
-func initDB() (*sql.DB, error) {
-	var db *sql.DB
+type database struct {
+	host     string
+	port     string
+	user     string
+	password string
+	name     string
+	db       *sql.DB
+}
 
-	host := os.Getenv("COSTUMER_SERVICE_DATABASE_HOST")
-	port := os.Getenv("COSTUMER_SERVICE_DATABASE_PORT")
-	user := os.Getenv("COSTUMER_SERVICE_DATABASE_USER")
-	password := os.Getenv("COSTUMER_SERVICE_DATABASE_PASSWORD")
-	dbname := os.Getenv("COSTUMER_SERVICE_DATABASE_NAME")
-
+func (d *database) init() error {
 	// Create connection string
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	fmt.Println(connStr)
+		d.host, d.port, d.user, d.password, d.name)
 
 	// Open a database connection and set up a connection pool
 	var err error
-	db, err = sql.Open("postgres", connStr)
+	d.db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Printf("Error opening database connection: %v", err)
-		return nil, err
+		return err
 	}
 
 	// Set the maximum number of open (in-use + idle) connections
-	db.SetMaxOpenConns(10)
+	d.db.SetMaxOpenConns(10)
 
 	// Set the maximum number of idle connections in the pool
-	db.SetMaxIdleConns(5)
+	d.db.SetMaxIdleConns(5)
 
 	// Check if the database connection is alive
-	err = db.Ping()
+	err = d.db.Ping()
 	if err != nil {
 		log.Printf("Error pinging database: %v", err)
-		return nil, err
+		return err
 	}
 
 	fmt.Println("Connected to the database")
-	return db, nil
+	return nil
 }
 
-func createCustomerInDatabase(db *sql.DB, name string, email string) (string, error) {
+func (d database) createCustomerInDatabase(name string, email string) (int, error) {
 	var id int
 	// Insert data into the customers table and retrieve the inserted id
-	err := db.QueryRow("INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id", name, email).Scan(&id)
-	return strconv.Itoa(id), err
+	err := d.db.QueryRow("INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id", name, email).Scan(&id)
+	return id, err
 }
 
-func deleteCustomerFromDatabase(db *sql.DB, id string) error {
+func (d database) deleteCustomerFromDatabase(id int) error {
 	// Delete data from the customers table
-	_, err := db.Exec("DELETE FROM customers WHERE id = $1", id)
+	_, err := d.db.Exec("DELETE FROM customers WHERE id = $1", id)
 	return err
 }
 
-func getCustomerFromDatabase(db *sql.DB, id string) (string, string, error) {
+func (d database) getCustomerFromDatabase(id int) (string, string, error) {
 	// Get customer data from the customers table
 	var name, email string
-	row := db.QueryRow("SELECT name, email FROM customers WHERE id = $1", id)
+	row := d.db.QueryRow("SELECT name, email FROM customers WHERE id = $1", id)
 	err := row.Scan(&name, &email)
 	if err != nil {
 		return "", "", err
@@ -90,7 +89,16 @@ func getCustomerFromDatabase(db *sql.DB, id string) (string, string, error) {
 }
 
 func main() {
-	db, err := initDB()
+	d := database{
+		host:     os.Getenv("COSTUMER_SERVICE_DATABASE_HOST"),
+		port:     os.Getenv("COSTUMER_SERVICE_DATABASE_PORT"),
+		user:     os.Getenv("COSTUMER_SERVICE_DATABASE_USER"),
+		password: os.Getenv("COSTUMER_SERVICE_DATABASE_PASSWORD"),
+		name:     os.Getenv("COSTUMER_SERVICE_DATABASE_NAME"),
+		db:       &sql.DB{},
+	}
+
+	err := d.init()
 	if err != nil {
 		return
 	}
@@ -103,14 +111,14 @@ func main() {
 		var requestBody createRequestBody
 
 		// Bind the JSON body to the RequestBody struct
-		if err := c.ShouldBindJSON(&requestBody); err != nil {
+		if err := c.BindJSON(&requestBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		id, err := createCustomerInDatabase(db, requestBody.Name, requestBody.Email)
+		id, err := d.createCustomerInDatabase(requestBody.Name, requestBody.Email)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		} else {
 			c.JSON(http.StatusOK, gin.H{
@@ -125,13 +133,13 @@ func main() {
 		var requestBody deleteRequestBody
 
 		// Bind the JSON body to the RequestBody struct
-		if err := c.ShouldBindJSON(&requestBody); err != nil {
+		if err := c.BindJSON(&requestBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := deleteCustomerFromDatabase(db, requestBody.ID); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		if err := d.deleteCustomerFromDatabase(requestBody.ID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -146,14 +154,14 @@ func main() {
 		var requestBody getRequestBody
 
 		// Bind the JSON body to the RequestBody struct
-		if err := c.ShouldBindJSON(&requestBody); err != nil {
+		if err := c.BindJSON(&requestBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		name, email, err := getCustomerFromDatabase(db, requestBody.ID)
+		name, email, err := d.getCustomerFromDatabase(requestBody.ID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -167,5 +175,5 @@ func main() {
 
 	// Run the server on port 8000
 	r.Run(":8000")
-	defer db.Close()
+	defer d.db.Close()
 }
