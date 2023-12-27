@@ -65,22 +65,22 @@ func (d *database) init() error {
 }
 
 func (d database) createCustomerInDatabase(name string, email string) (int, error) {
-	var id int
+	var customerID int
 	// Insert data into the customers table and retrieve the inserted id
-	err := d.DB.QueryRow("INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id", name, email).Scan(&id)
-	return id, err
+	err := d.DB.QueryRow("INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING customer_id", name, email).Scan(&customerID)
+	return customerID, err
 }
 
-func (d database) deleteCustomerFromDatabase(id int) error {
+func (d database) deleteCustomerFromDatabase(customerID int) error {
 	// Delete data from the customers table
-	_, err := d.DB.Exec("DELETE FROM customers WHERE id = $1", id)
+	_, err := d.DB.Exec("DELETE FROM customers WHERE customer_id = $1", customerID)
 	return err
 }
 
-func (d database) getCustomerFromDatabase(id int) (string, string, error) {
+func (d database) getCustomerFromDatabase(customerID int) (string, string, error) {
 	// Get customer data from the customers table
 	var name, email string
-	row := d.DB.QueryRow("SELECT name, email FROM customers WHERE id = $1", id)
+	row := d.DB.QueryRow("SELECT name, email FROM customers WHERE customer_id = $1", customerID)
 	err := row.Scan(&name, &email)
 	if err != nil {
 		return "", "", err
@@ -118,14 +118,14 @@ func main() {
 			return
 		}
 
-		id, err := d.createCustomerInDatabase(requestBody.Name, requestBody.Email)
+		customerID, err := d.createCustomerInDatabase(requestBody.Name, requestBody.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		} else {
 			c.JSON(http.StatusOK, gin.H{
 				"message":    "success",
-				"customerID": id,
+				"customerID": customerID,
 			})
 		}
 	})
@@ -140,14 +140,14 @@ func main() {
 			return
 		}
 
-		if err := d.deleteCustomerFromDatabase(requestBody.customerID); err != nil {
+		if err := d.deleteCustomerFromDatabase(requestBody.CustomerID); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"message":    "success",
-			"customerID": requestBody.customerID,
+			"customerID": requestBody.CustomerID,
 		})
 	})
 
@@ -161,7 +161,7 @@ func main() {
 			return
 		}
 
-		name, email, err := d.getCustomerFromDatabase(requestBody.customerID)
+		name, email, err := d.getCustomerFromDatabase(requestBody.CustomerID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -169,7 +169,7 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{
 			"message":       "success",
-			"customerID":    requestBody.customerID,
+			"customerID":    requestBody.CustomerID,
 			"customerName":  name,
 			"customerEmail": email,
 		})
@@ -177,5 +177,5 @@ func main() {
 
 	// Run the server on port 8080
 	r.Run(":8080")
-	defer d.db.Close()
+	defer d.DB.Close()
 }

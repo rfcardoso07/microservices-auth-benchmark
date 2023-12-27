@@ -1,17 +1,6 @@
 version: "3"
 
 services:
-  customer-database:
-    image: postgres:11.4
-    ports:
-      - "8081:5432"
-    networks:
-      - app-net
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-
   customer-service:
     build: ./customer-service
     depends_on:
@@ -23,10 +12,10 @@ services:
     env_file:
       - customer-service/.env
 
-  account-database:
+  customer-database:
     image: postgres:11.4
     ports:
-      - "8083:5432"
+      - "8081:5432"
     networks:
       - app-net
     environment:
@@ -44,6 +33,39 @@ services:
       - app-net
     env_file:
       - account-service/.env
+
+  account-database:
+    image: postgres:11.4
+    ports:
+      - "8083:5432"
+    networks:
+      - app-net
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+
+  transaction-service:
+    build: .
+    depends_on:
+      - transaction-database
+    ports:
+      - "8084:8084"
+    networks:
+      - app-net
+    env_file:
+      - .env
+
+  transaction-database:
+    image: postgres:11.4
+    ports:
+      - "8085:5432"
+    networks:
+      - app-net
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
 
 networks:
   app-net:

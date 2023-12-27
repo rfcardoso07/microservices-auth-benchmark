@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  transaction-service:
+    build: .
+    depends_on:
+      - transaction-database
+    ports:
+      - "8084:8084"
+    env_file:
+      - .env
+
+  transaction-database:
+    image: postgres:11.4
+    ports:
+      - "8085:5432"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin

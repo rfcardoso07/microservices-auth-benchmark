@@ -20,6 +20,20 @@ type deleteRequestBody struct {
 	AccountID int `json:"accountID" binding:"required"`
 }
 
+type getRequestBody struct {
+	AccountID int `json:"accountID" binding:"required"`
+}
+
+type addToBalanceRequestBody struct {
+	AccountID int `json:"accountID" binding:"required"`
+	Amount    int `json:"amount" binding:"required"`
+}
+
+type subtractFromBalanceRequestBody struct {
+	AccountID int `json:"accountID" binding:"required"`
+	Amount    int `json:"amount" binding:"required"`
+}
+
 type database struct {
 	Host     string
 	Port     string
@@ -69,6 +83,29 @@ func (d database) createAccountInDatabase(customerID int) (int, error) {
 func (d database) deleteAccountFromDatabase(accountID int) error {
 	// Delete data from the accounts table
 	_, err := d.DB.Exec("DELETE FROM accounts WHERE account_id = $1", accountID)
+	return err
+}
+
+func (d database) getAccountFromDatabase(accountID int) (int, int, error) {
+	// Get account data from the accounts table
+	var customerID, balance int
+	row := d.DB.QueryRow("SELECT customer_id, balance FROM accounts WHERE id = $1", accountID)
+	err := row.Scan(&customerID, &balance)
+	if err != nil {
+		return 0, 0, err
+	}
+	return customerID, balance, nil
+}
+
+func (d database) addToAccountBalanceInDatabase(accountID int, amount int) error {
+	// Add amount to account balance by updating accounts table
+	_, err := d.DB.Exec("UPDATE accounts SET balance = balance + $1 WHERE account_id = $2", amount, accountID)
+	return err
+}
+
+func (d database) subtractFromAccountBalanceInDatabase(accountID int, amount int) error {
+	// Subtract amount from account balance by updating accounts table
+	_, err := d.DB.Exec("UPDATE accounts SET balance = balance - $1 WHERE account_id = $2", amount, accountID)
 	return err
 }
 
@@ -135,7 +172,75 @@ func main() {
 		})
 	})
 
+	// Route for retrieving accounts data
+	r.POST("/getAccount", func(c *gin.Context) {
+		var requestBody getRequestBody
+
+		// Bind the JSON body to the RequestBody struct
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		customerID, balance, err := d.getAccountFromDatabase(requestBody.AccountID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":    "success",
+			"accountID":  requestBody.AccountID,
+			"customerID": customerID,
+			"balance":    balance,
+		})
+	})
+
+	// Route for adding amounts to account balances
+	r.POST("/addToBalance", func(c *gin.Context) {
+		var requestBody addToBalanceRequestBody
+
+		// Bind the JSON body to the RequestBody struct
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := d.addToAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":     "success",
+			"accountID":   requestBody.AccountID,
+			"amountAdded": requestBody.Amount,
+		})
+	})
+
+	// Route for subtracting amounts from account balances
+	r.POST("/subtractFromBalance", func(c *gin.Context) {
+		var requestBody subtractFromBalanceRequestBody
+
+		// Bind the JSON body to the RequestBody struct
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := d.subtractFromAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":          "success",
+			"accountID":        requestBody.AccountID,
+			"amountSubtracted": requestBody.Amount,
+		})
+	})
+
 	// Run the server on port 8082
 	r.Run(":8082")
-	defer d.db.Close()
+	defer d.DB.Close()
 }
