@@ -89,6 +89,8 @@ func (d database) getCustomerFromDatabase(id int) (string, string, error) {
 }
 
 func main() {
+	gin.SetMode(gin.DebugMode)
+
 	d := database{
 		host:     os.Getenv("COSTUMER_SERVICE_DATABASE_HOST"),
 		port:     os.Getenv("COSTUMER_SERVICE_DATABASE_PORT"),
@@ -133,7 +135,7 @@ func main() {
 		var requestBody deleteRequestBody
 
 		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
+		if err := c.ShouldBindJSON(&requestBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
