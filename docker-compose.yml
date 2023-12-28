@@ -89,5 +89,19 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
 
+  gateway:
+    image: ./gateway
+    depends_on:
+      - customer-service
+      - account-service
+      - transaction-service
+      - notification-service
+    ports:
+      - "8000:8000"
+    networks:
+      - app-net
+    env_file:
+      - gateway/.env
+
 networks:
   app-net:

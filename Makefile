@@ -15,3 +15,4 @@ up:
 	docker-compose up -d account-service
 	docker-compose up -d transaction-service
 	docker-compose up -d notification-service
+	docker-compose up -d gateway
