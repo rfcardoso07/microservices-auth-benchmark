@@ -17,6 +17,12 @@ CREATE TABLE public.transactions (
     amount INT NOT NULL
 );
 
+CREATE TABLE public.notifications (
+    notification_id SERIAL PRIMARY KEY,
+    transaction_id INT REFERENCES public.transactions(transaction_id)
+    recipient_email VARCHAR(255) REFERENCES public.customers(email)
+);
+
 INSERT INTO public.customers (name, email) VALUES
     ('John Doe', 'john.doe@example.com'),
     ('Jane Smith', 'jane.smith@example.com'),
@@ -26,3 +32,8 @@ INSERT INTO public.accounts (customer_id, balance) VALUES
     (1, 0),
     (2, 0),
     (3, 0);
+
+INSERT INTO public.transactions (sender_id, receiver_id, amount) VALUES
+    (1, 2, 10),
+    (2, 3, 20),
+    (3, 1, 30);

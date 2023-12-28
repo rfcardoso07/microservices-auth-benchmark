@@ -46,7 +46,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   transaction-service:
-    build: .
+    build: ./transaction-service
     depends_on:
       - transaction-database
     ports:
@@ -54,12 +54,34 @@ services:
     networks:
       - app-net
     env_file:
-      - .env
+      - transaction-service/.env
 
   transaction-database:
     image: postgres:11.4
     ports:
       - "8085:5432"
+    networks:
+      - app-net
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+
+  notification-service:
+    build: ./notification-service
+    depends_on:
+      - notification-database
+    ports:
+      - "8086:8086"
+    networks:
+      - app-net
+    env_file:
+      - notification-service/.env
+
+  notification-database:
+    image: postgres:11.4
+    ports:
+      - "8087:5432"
     networks:
       - app-net
     environment:
