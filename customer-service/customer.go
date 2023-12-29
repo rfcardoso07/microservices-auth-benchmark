@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -23,6 +26,24 @@ type deleteRequestBody struct {
 
 type getRequestBody struct {
 	CustomerID int `json:"customerID" binding:"required"`
+}
+
+type createAccountRequestPayload struct {
+	CustomerID int `json:"customerID"`
+}
+
+type createAccountResponseBody struct {
+	Message   string `json:"message"`
+	AccountID int    `json:"accountID"`
+}
+
+type deleteAccountRequestPayload struct {
+	AccountID int `json:"accountID"`
+}
+
+type deleteAccountResponseBody struct {
+	Message   string `json:"message"`
+	AccountID int    `json:"accountID"`
 }
 
 type database struct {
@@ -88,6 +109,63 @@ func (d database) getCustomerFromDatabase(customerID int) (string, string, error
 	return name, email, nil
 }
 
+func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
+	// Create a POST request with the JSON payload
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, err
+	}
+
+	// Set headers
+	request.Header.Set("Content-Type", "application/json")
+
+	// Send the request using the provided http.Client
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func sendCreateAccountRequest(customerID int, accountService string) (createAccountResponseBody, error) {
+	payload := createAccountRequestPayload {
+		CustomerID: customerID,
+	}
+
+	// Marshal the struct into a JSON-formatted byte slice
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshaling JSON: %v", err)
+		return createAccountResponseBody{}, err
+	}
+
+	url := "http://" + accountService + "/createAccount"
+
+	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
+	if err != nil {
+		log.Printf("Error performing POST request: %v", err)
+		return createAccountResponseBody{}, err
+	}
+
+	// Unmarshal the JSON response into a struct
+	var response createAccountResponseBody
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		return createAccountResponseBody{}, err
+	}
+
+	return response, nil
+}
+
 func main() {
 	gin.SetMode(gin.DebugMode)
 
@@ -104,6 +182,8 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	accountService := os.Getenv("ACCOUNT_SERVICE_HOST_AND_PORT")
 
 	// Create a new Gin router
 	r := gin.Default()
@@ -123,9 +203,15 @@ func main() {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		} else {
+			response, err := sendCreateAccountRequest(customerID, accountService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 			c.JSON(http.StatusOK, gin.H{
 				"message":    "success",
 				"customerID": customerID,
+				"accountID":  response.AccountID,
 			})
 		}
 	})
