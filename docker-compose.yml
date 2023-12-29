@@ -90,7 +90,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   gateway:
-    image: ./gateway
+    build: ./gateway
     depends_on:
       - customer-service
       - account-service

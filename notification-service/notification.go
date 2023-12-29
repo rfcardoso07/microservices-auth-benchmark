@@ -84,11 +84,11 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 
 	d := database{
-		Host:     os.Getenv("TRANSACTION_SERVICE_DATABASE_HOST"),
-		Port:     os.Getenv("TRANSACTION_SERVICE_DATABASE_PORT"),
-		User:     os.Getenv("TRANSACTION_SERVICE_DATABASE_USER"),
-		Password: os.Getenv("TRANSACTION_SERVICE_DATABASE_PASSWORD"),
-		Name:     os.Getenv("TRANSACTION_SERVICE_DATABASE_NAME"),
+		Host:     os.Getenv("NOTIFICATION_SERVICE_DATABASE_HOST"),
+		Port:     os.Getenv("NOTIFICATION_SERVICE_DATABASE_PORT"),
+		User:     os.Getenv("NOTIFICATION_SERVICE_DATABASE_USER"),
+		Password: os.Getenv("NOTIFICATION_SERVICE_DATABASE_PASSWORD"),
+		Name:     os.Getenv("NOTIFICATION_SERVICE_DATABASE_NAME"),
 		DB:       &sql.DB{},
 	}
 

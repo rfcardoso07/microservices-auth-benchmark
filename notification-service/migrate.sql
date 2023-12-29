@@ -19,8 +19,9 @@ CREATE TABLE public.transactions (
 
 CREATE TABLE public.notifications (
     notification_id SERIAL PRIMARY KEY,
-    transaction_id INT REFERENCES public.transactions(transaction_id)
-    recipient_email VARCHAR(255) REFERENCES public.customers(email)
+    transaction_id INT REFERENCES public.transactions(transaction_id),
+    amount INT NOT NULL,
+    recipient_email VARCHAR(255) NOT NULL
 );
 
 INSERT INTO public.customers (name, email) VALUES

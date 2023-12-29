@@ -89,7 +89,7 @@ func (d database) deleteAccountFromDatabase(accountID int) error {
 func (d database) getAccountFromDatabase(accountID int) (int, int, error) {
 	// Get account data from the accounts table
 	var customerID, balance int
-	row := d.DB.QueryRow("SELECT customer_id, balance FROM accounts WHERE id = $1", accountID)
+	row := d.DB.QueryRow("SELECT customer_id, balance FROM accounts WHERE account_id = $1", accountID)
 	err := row.Scan(&customerID, &balance)
 	if err != nil {
 		return 0, 0, err

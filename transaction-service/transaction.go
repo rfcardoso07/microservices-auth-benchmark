@@ -14,7 +14,7 @@ import (
 
 type transferRequestBody struct {
 	SenderID   int `json:"senderID" binding:"required"`
-	ReceiverID int `json:"customerID" binding:"required"`
+	ReceiverID int `json:"receiverID" binding:"required"`
 	Amount     int `json:"amount" binding:"required"`
 }
 
@@ -71,7 +71,7 @@ func (d database) createTransactionInDatabase(senderID int, receiverID int, amou
 func (d database) getTransactionFromDatabase(transactionID int) (int, int, int, error) {
 	// Get transaction data from the transactions table
 	var senderID, receiverID, amount int
-	row := d.DB.QueryRow("SELECT sender_id, receiver_id, amount FROM transactions WHERE id = $1", transactionID)
+	row := d.DB.QueryRow("SELECT sender_id, receiver_id, amount FROM transactions WHERE transaction_id = $1", transactionID)
 	err := row.Scan(&senderID, &receiverID, &amount)
 	if err != nil {
 		return 0, 0, 0, err
