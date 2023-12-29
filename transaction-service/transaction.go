@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +23,28 @@ type transferRequestBody struct {
 
 type getRequestBody struct {
 	TransactionID int `json:"transactionID" binding:"required"`
+}
+
+type addToAccountRequestPayload struct {
+	AccountID int `json:"accountID"`
+	Amount    int `json:"amount"`
+}
+
+type subtractFromAccountRequestPayload struct {
+	AccountID int `json:"accountID"`
+	Amount    int `json:"amount"`
+}
+
+type addToAccountResponseBody struct {
+	Message   string `json:"message"`
+	AccountID int    `json:"accountID"`
+	Amount    int    `json:"amountAdded"`
+}
+
+type subtractFromAccountResponseBody struct {
+	Message   string `json:"message"`
+	AccountID int    `json:"accountID"`
+	Amount    int    `json:"amountSubtracted"`
 }
 
 type database struct {
@@ -79,6 +104,96 @@ func (d database) getTransactionFromDatabase(transactionID int) (int, int, int, 
 	return senderID, receiverID, amount, nil
 }
 
+func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
+	// Create a POST request with the JSON payload
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, err
+	}
+
+	// Set headers
+	request.Header.Set("Content-Type", "application/json")
+
+	// Send the request using the provided http.Client
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func sendAddToAccountRequest(accountID int, amount int, accountService string) (addToAccountResponseBody, error) {
+	payload := addToAccountRequestPayload {
+		AccountID: accountID,
+		Amount: amount,
+	}
+
+	// Marshal the struct into a JSON-formatted byte slice
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshaling JSON: %v", err)
+		return addToAccountResponseBody{}, err
+	}
+
+	url := "http://" + accountService + "/addToBalance"
+
+	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
+	if err != nil {
+		log.Printf("Error performing POST request: %v", err)
+		return addToAccountResponseBody{}, err
+	}
+
+	// Unmarshal the JSON response into a struct
+	var response addToAccountResponseBody
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		return addToAccountResponseBody{}, err
+	}
+
+	return response, nil
+}
+
+func sendSubtractFromAccountRequest(accountID int, amount int, accountService string) (subtractFromAccountResponseBody, error) {
+	payload := subtractFromAccountRequestPayload {
+		AccountID: accountID,
+		Amount: amount,
+	}
+
+	// Marshal the struct into a JSON-formatted byte slice
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshaling JSON: %v", err)
+		return subtractFromAccountResponseBody{}, err
+	}
+
+	url := "http://" + accountService + "/subtractFromBalance"
+
+	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
+	if err != nil {
+		log.Printf("Error performing POST request: %v", err)
+		return subtractFromAccountResponseBody{}, err
+	}
+
+	// Unmarshal the JSON response into a struct
+	var response subtractFromAccountResponseBody
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		return subtractFromAccountResponseBody{}, err
+	}
+
+	return response, nil
+}
+
 func main() {
 	gin.SetMode(gin.DebugMode)
 
@@ -95,6 +210,8 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	accountService := os.Getenv("ACCOUNT_SERVICE_HOST_AND_PORT")
 
 	// Create a new Gin router
 	r := gin.Default()
@@ -113,12 +230,26 @@ func main() {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"message":       "success",
-				"transactionID": transactionID,
-			})
 		}
+
+		subtractResponse, err := sendSubtractFromAccountRequest(transferRequestBody.SenderID, transferRequestBody.Amount, accountService)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		
+		addResponse, err := sendAddToAccountRequest(transferRequestBody.ReceiverID, transferRequestBody.Amount, accountService)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":       "success",
+			"transactionID": transactionID,
+			"senderID":      subtractResponse.AccountID,
+			"receiverID":    addResponse.AccountID,
+		})
 	})
 
 	// Route for retrieving transactions data

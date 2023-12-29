@@ -37,15 +37,6 @@ type createAccountResponseBody struct {
 	AccountID int    `json:"accountID"`
 }
 
-type deleteAccountRequestPayload struct {
-	AccountID int `json:"accountID"`
-}
-
-type deleteAccountResponseBody struct {
-	Message   string `json:"message"`
-	AccountID int    `json:"accountID"`
-}
-
 type database struct {
 	Host     string
 	Port     string
@@ -202,18 +193,19 @@ func main() {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
-		} else {
-			response, err := sendCreateAccountRequest(customerID, accountService)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(http.StatusOK, gin.H{
-				"message":    "success",
-				"customerID": customerID,
-				"accountID":  response.AccountID,
-			})
 		}
+
+		response, err := sendCreateAccountRequest(customerID, accountService)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		
+		c.JSON(http.StatusOK, gin.H{
+			"message":    "success",
+			"customerID": customerID,
+			"accountID":  response.AccountID,
+		})
 	})
 
 	// Route for deleting customers
