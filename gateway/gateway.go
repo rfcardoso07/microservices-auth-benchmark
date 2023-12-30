@@ -17,6 +17,7 @@ func main() {
 	accountServiceURL := os.Getenv("ACCOUNT_SERVICE_URL")
 	transactionServiceURL := os.Getenv("TRANSACTION_SERVICE_URL")
 	notificationServiceURL := os.Getenv("NOTIFICATION_SERVICE_URL")
+	balanceServiceURL := os.Getenv("BALANCE_SERVICE_URL")
 
 	// Define the target URLs for different paths
 	forwardURLs := map[string]string{
@@ -35,6 +36,8 @@ func main() {
 		"/getTransaction":           transactionServiceURL,
 		"/notify":                   notificationServiceURL,
 		"/getNotification":          notificationServiceURL,
+		"/getBalanceByCustomer":     balanceServiceURL,
+		"/getBalanceHistory":        balanceServiceURL
 	}
 
 	// Create reverse proxies for each target URL

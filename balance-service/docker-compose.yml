@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  balance-service:
+    build: .
+    depends_on:
+      - balance-database
+    ports:
+      - "8088:8088"
+    env_file:
+      - .env
+
+  balance-database:
+    image: postgres:11.4
+    ports:
+      - "8089:5432"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
