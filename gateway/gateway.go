@@ -20,18 +20,21 @@ func main() {
 
 	// Define the target URLs for different paths
 	forwardURLs := map[string]string{
-		"/createCustomer":      customerServiceURL,
-		"/deleteCustomer":      customerServiceURL,
-		"/getCustomer":         customerServiceURL,
-		"/createAccount":       accountServiceURL,
-		"/deleteAccount":       accountServiceURL,
-		"/getAccount":          accountServiceURL,
-		"/addToBalance":        accountServiceURL,
-		"/subtractFromBalance": accountServiceURL,
-		"/transferAmount":      transactionServiceURL,
-		"/getTransaction":      transactionServiceURL,
-		"/notify":              notificationServiceURL,
-		"/getNotification":     notificationServiceURL,
+		"/createCustomer":           customerServiceURL,
+		"/deleteCustomer":           customerServiceURL,
+		"/getCustomer":              customerServiceURL,
+		"/createAccount":            accountServiceURL,
+		"/deleteAccount":            accountServiceURL,
+		"/deleteAccountsByCustomer": accountServiceURL
+		"/getAccount":               accountServiceURL,
+		"/getAccountsByCustomer":    accountServiceURL
+		"/addToBalance":             accountServiceURL,
+		"/subtractFromBalance":      accountServiceURL,
+		"/transferAmount":           transactionServiceURL,
+		"/transferAmountAndNotify":  transactionServiceURL,
+		"/getTransaction":           transactionServiceURL,
+		"/notify":                   notificationServiceURL,
+		"/getNotification":          notificationServiceURL,
 	}
 
 	// Create reverse proxies for each target URL

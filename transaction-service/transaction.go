@@ -21,6 +21,12 @@ type transferRequestBody struct {
 	Amount     int `json:"amount" binding:"required"`
 }
 
+type transferAndNotifyRequestBody struct {
+	SenderID   int `json:"senderID" binding:"required"`
+	ReceiverID int `json:"receiverID" binding:"required"`
+	Amount     int `json:"amount" binding:"required"`
+}
+
 type getRequestBody struct {
 	TransactionID int `json:"transactionID" binding:"required"`
 }
@@ -35,6 +41,12 @@ type subtractFromAccountRequestPayload struct {
 	Amount    int `json:"amount"`
 }
 
+type notifyRequestPayload struct {
+	TransactionID int `json:"transactionID"`
+	Amount        int `json:"amount"`
+	ReceiverID    int `json:"receiverID"`
+}
+
 type addToAccountResponseBody struct {
 	Message   string `json:"message"`
 	AccountID int    `json:"accountID"`
@@ -45,6 +57,11 @@ type subtractFromAccountResponseBody struct {
 	Message   string `json:"message"`
 	AccountID int    `json:"accountID"`
 	Amount    int    `json:"amountSubtracted"`
+}
+
+type notifyResponseBody struct {
+	Message        string `json:"message"`
+	NotificationID int    `json:"notificationID"`
 }
 
 type database struct {
@@ -194,6 +211,39 @@ func sendSubtractFromAccountRequest(accountID int, amount int, accountService st
 	return response, nil
 }
 
+func sendNotifyRequest(transactionID int, amount int, receiverID int notificationService string) (notifyResponseBody, error) {
+	payload := notifyRequestPayload {
+		TransactionID: transactionID,
+		Amount: amount,
+		ReceiverID: receiverID,
+	}
+
+	// Marshal the struct into a JSON-formatted byte slice
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshaling JSON: %v", err)
+		return notifyResponseBody{}, err
+	}
+
+	url := "http://" + notificationService + "/notify"
+
+	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
+	if err != nil {
+		log.Printf("Error performing POST request: %v", err)
+		return notifyResponseBody{}, err
+	}
+
+	// Unmarshal the JSON response into a struct
+	var response notifyResponseBody
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		return notifyResponseBody{}, err
+	}
+
+	return response, nil
+}
+
 func main() {
 	gin.SetMode(gin.DebugMode)
 
@@ -212,23 +262,18 @@ func main() {
 	}
 
 	accountService := os.Getenv("ACCOUNT_SERVICE_HOST_AND_PORT")
+	notificationService := os.Getenv("NOTIFICATION_SERVICE_HOST_AND_PORT")
 
 	// Create a new Gin router
 	r := gin.Default()
 
-	// Route for creating accounts
+	// Route for performing transactions
 	r.POST("/transferAmount", func(c *gin.Context) {
 		var requestBody transferRequestBody
 
 		// Bind the JSON body to the RequestBody struct
 		if err := c.BindJSON(&requestBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		transactionID, err := d.createTransactionInDatabase(requestBody.SenderID, requestBody.ReceiverID, requestBody.Amount)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -244,11 +289,60 @@ func main() {
 			return
 		}
 
+		transactionID, err := d.createTransactionInDatabase(requestBody.SenderID, requestBody.ReceiverID, requestBody.Amount)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"message":       "success",
 			"transactionID": transactionID,
 			"senderID":      subtractResponse.AccountID,
 			"receiverID":    addResponse.AccountID,
+		})
+	})
+
+	// Route for performing transactions and notifying receivers
+	r.POST("/transferAmountAndNotify", func(c *gin.Context) {
+		var requestBody transferAndNotifyRequestBody
+
+		// Bind the JSON body to the RequestBody struct
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		subtractResponse, err := sendSubtractFromAccountRequest(transferAndNotifyRequestBody.SenderID, transferAndNotifyRequestBody.Amount, accountService)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		
+		addResponse, err := sendAddToAccountRequest(transferAndNotifyRequestBody.ReceiverID, transferAndNotifyRequestBody.Amount, accountService)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		transactionID, err := d.createTransactionInDatabase(requestBody.SenderID, requestBody.ReceiverID, requestBody.Amount)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		notifyResponse, err := sendNotifyRequest(transactionID, transferAndNotifyRequestBody.ReceiverID, transferAndNotifyRequestBody.Amount, notificationService)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":        "success",
+			"transactionID":  transactionID,
+			"senderID":       subtractResponse.AccountID,
+			"receiverID":     addResponse.AccountID,
+			"notificationID": notifyResponse.NotificationID
 		})
 	})
 

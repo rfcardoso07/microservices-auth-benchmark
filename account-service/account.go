@@ -20,8 +20,16 @@ type deleteRequestBody struct {
 	AccountID int `json:"accountID" binding:"required"`
 }
 
+type deleteByCustomerRequestBody struct {
+	CustomerID int `json:"customerID" binding:"required"`
+}
+
 type getRequestBody struct {
 	AccountID int `json:"accountID" binding:"required"`
+}
+
+type getByCustomerRequestBody struct {
+	CustomerID int `json:"customerID" binding:"required"`
 }
 
 type addToBalanceRequestBody struct {
@@ -86,6 +94,33 @@ func (d database) deleteAccountFromDatabase(accountID int) error {
 	return err
 }
 
+func (d database) deleteAccountsFromDatabaseByCustomer(customerID int) ([]int, error) {
+	// Delete data from the accounts table and return the deleted account IDs
+	rows, err := d.DB.Query("DELETE FROM accounts WHERE customer_id = $1 RETURNING account_id", customerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var deletedAccountIDs []int
+
+	// Iterate through the rows and add account IDs to the slice
+	for rows.Next() {
+		var deletedAccountID int
+		if err := rows.Scan(&deletedAccountID); err != nil {
+			return nil, err
+		}
+		deletedAccountIDs = append(deletedAccountIDs, deletedAccountID)
+	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return deletedAccountIDs, nil
+}
+
 func (d database) getAccountFromDatabase(accountID int) (int, int, error) {
 	// Get account data from the accounts table
 	var customerID, balance int
@@ -96,6 +131,35 @@ func (d database) getAccountFromDatabase(accountID int) (int, int, error) {
 	}
 	return customerID, balance, nil
 }
+
+func (d database) getAccountsFromDatabaseByCustomer(customerID int) ([]int, []int, error) {
+	// Get account data from the accounts table
+	var accountIDs, balances []int
+
+	rows, err := d.DB.Query("SELECT account_id, balance FROM accounts WHERE customer_id = $1", customerID)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	// Iterate through the rows and add values to slices
+	for rows.Next() {
+		var accountID, balance int
+		if err := rows.Scan(&accountID, &balance); err != nil {
+			return nil, nil, err
+		}
+		accountIDs = append(accountIDs, accountID)
+		balances = append(balances, balance)
+	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	return accountIDs, balances, nil
+}
+
 
 func (d database) addToAccountBalanceInDatabase(accountID int, amount int) error {
 	// Add amount to account balance by updating accounts table
@@ -143,12 +207,12 @@ func main() {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"message":   "success",
-				"accountID": accountID,
-			})
 		}
+		
+		c.JSON(http.StatusOK, gin.H{
+			"message":   "success",
+			"accountID": accountID,
+		})
 	})
 
 	// Route for deleting accounts
@@ -169,6 +233,29 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"message":   "success",
 			"accountID": requestBody.AccountID,
+		})
+	})
+
+	// Route for deleting accounts by customer
+	r.POST("/deleteAccountsByCustomer", func(c *gin.Context) {
+		var requestBody deleteByCustomerRequestBody
+
+		// Bind the JSON body to the RequestBody struct
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		accountIDs, err := d.deleteAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":   "success",
+			"customerID": requestBody.CustomerID,
+			"accountIDs": accountIDs,
 		})
 	})
 
@@ -193,6 +280,30 @@ func main() {
 			"accountID":  requestBody.AccountID,
 			"customerID": customerID,
 			"balance":    balance,
+		})
+	})
+
+	// Route for retrieving accounts data by customer
+	r.POST("/getAccountsByCustomer", func(c *gin.Context) {
+		var requestBody getByCustomerRequestBody
+
+		// Bind the JSON body to the RequestBody struct
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		accountIDs, balances, err := d.getAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":    "success",
+			"customerID": requestBody.CustomerID,
+			"accountIDs": accountIDs,
+			"balances":   balances,
 		})
 	})
 

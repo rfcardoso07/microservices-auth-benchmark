@@ -32,9 +32,18 @@ type createAccountRequestPayload struct {
 	CustomerID int `json:"customerID"`
 }
 
+type deleteAccountsByCustomerRequestPayload struct {
+	CustomerID int `json:"customerID"`
+}
+
 type createAccountResponseBody struct {
 	Message   string `json:"message"`
 	AccountID int    `json:"accountID"`
+}
+
+type deleteAccountsByCustomerResponseBody struct {
+	Message    string `json:"message"`
+	AccountIDs []int  `json:"accountIDs"`
 }
 
 type database struct {
@@ -157,6 +166,37 @@ func sendCreateAccountRequest(customerID int, accountService string) (createAcco
 	return response, nil
 }
 
+func sendDeleteAccountsByCustomerRequest(customerID int, accountService string) (deleteAccountsByCustomerResponseBody, error) {
+	payload := deleteAccountsByCustomerRequestPayload {
+		CustomerID: customerID,
+	}
+
+	// Marshal the struct into a JSON-formatted byte slice
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshaling JSON: %v", err)
+		return deleteAccountsByCustomerResponseBody{}, err
+	}
+
+	url := "http://" + accountService + "/deleteAccountsByCustomer"
+
+	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
+	if err != nil {
+		log.Printf("Error performing POST request: %v", err)
+		return deleteAccountsByCustomerResponseBody{}, err
+	}
+
+	// Unmarshal the JSON response into a struct
+	var response deleteAccountsByCustomerResponseBody
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		return deleteAccountsByCustomerResponseBody{}, err
+	}
+
+	return response, nil
+}
+
 func main() {
 	gin.SetMode(gin.DebugMode)
 
@@ -189,13 +229,13 @@ func main() {
 			return
 		}
 
-		customerID, err := d.createCustomerInDatabase(requestBody.Name, requestBody.Email)
+		response, err := sendCreateAccountRequest(customerID, accountService)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		response, err := sendCreateAccountRequest(customerID, accountService)
+		customerID, err := d.createCustomerInDatabase(requestBody.Name, requestBody.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -218,6 +258,12 @@ func main() {
 			return
 		}
 
+		response, err := sendDeleteAccountsByCustomerRequest(customerID, accountService)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
 		if err := d.deleteCustomerFromDatabase(requestBody.CustomerID); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -226,6 +272,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"message":    "success",
 			"customerID": requestBody.CustomerID,
+			"accountIDs": response.AccountIDs
 		})
 	})
 
