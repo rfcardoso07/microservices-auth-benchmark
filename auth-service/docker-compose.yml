@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  auth-service:
+    build: .
+    depends_on:
+      - auth-database
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env
+
+  auth-database:
+    image: postgres:11.4
+    ports:
+      - "8091:5432"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
