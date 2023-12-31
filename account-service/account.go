@@ -160,7 +160,6 @@ func (d database) getAccountsFromDatabaseByCustomer(customerID int) ([]int, []in
 	return accountIDs, balances, nil
 }
 
-
 func (d database) addToAccountBalanceInDatabase(accountID int, amount int) error {
 	// Add amount to account balance by updating accounts table
 	_, err := d.DB.Exec("UPDATE accounts SET balance = balance + $1 WHERE account_id = $2", amount, accountID)
@@ -208,7 +207,7 @@ func main() {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{
 			"message":   "success",
 			"accountID": accountID,
@@ -253,7 +252,7 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":   "success",
+			"message":    "success",
 			"customerID": requestBody.CustomerID,
 			"accountIDs": accountIDs,
 		})

@@ -75,10 +75,10 @@ func (d *database) init() error {
 	return nil
 }
 
-func (d database) registerBalanceInDatabase(customerID int, totalBalance int) (error) {
+func (d database) registerBalanceInDatabase(customerID int, totalBalance int) error {
 	currentTime := time.Now()
 	// Insert data into the balances table
-	_, err = db.Exec("INSERT INTO balances (customer_id, total_balance, registered_at) VALUES ($1, $2, $3)", totalBalance, currentTime)
+	_, err := d.DB.Exec("INSERT INTO balances (customer_id, total_balance, registered_at) VALUES ($1, $2, $3)", totalBalance, currentTime)
 	return err
 }
 
@@ -86,7 +86,7 @@ func (d database) getLatestRecordsFromDatabase(customerID int, numberOfRecords i
 	// Retrieve the latest entries for the customer ID
 	rows, err := d.DB.Query("SELECT total_balance, registered_at FROM balances WHERE customer_id = $1 ORDER BY registered_at DESC LIMIT $2", customerID, numberOfRecords)
 	if err != nil {
-		return nil, nil, nil, err
+		return []int{}, []time.Time{}, err
 	}
 	defer rows.Close()
 
@@ -98,7 +98,7 @@ func (d database) getLatestRecordsFromDatabase(customerID int, numberOfRecords i
 		var balance int
 		var timestamp time.Time
 		if err := rows.Scan(&balance, &timestamp); err != nil {
-			return nil, nil, nil, err
+			return []int{}, []time.Time{}, err
 		}
 		totalBalances = append(totalBalances, balance)
 		registeredAt = append(registeredAt, timestamp)
@@ -106,12 +106,11 @@ func (d database) getLatestRecordsFromDatabase(customerID int, numberOfRecords i
 
 	// Check for errors from iterating over rows
 	if err := rows.Err(); err != nil {
-		return nil, nil, nil, err
+		return []int{}, []time.Time{}, err
 	}
 
 	return totalBalances, registeredAt, nil
 }
-
 
 func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
 	// Create a POST request with the JSON payload
@@ -140,7 +139,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 }
 
 func sendGetAccountsByCustomerRequest(customerID int, accountService string) (getAccountsByCustomerResponseBody, error) {
-	payload := getAccountsByCustomerRequestPayload {
+	payload := getAccountsByCustomerRequestPayload{
 		CustomerID: customerID,
 	}
 
@@ -202,26 +201,26 @@ func main() {
 			return
 		}
 
-		response, err := sendGetAccountsByCustomerRequest(customerID, accountService)
+		response, err := sendGetAccountsByCustomerRequest(requestBody.CustomerID, accountService)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		totalBalance := 0
-		for _, balance range response.Balances {
+		for _, balance := range response.Balances {
 			totalBalance += balance
 		}
 
-		err := d.registerBalanceInDatabase(requestBody.CustomerID, totalBalance)
+		err = d.registerBalanceInDatabase(requestBody.CustomerID, totalBalance)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{
 			"message":      "success",
-			"customerID":   requestBody.customerID,
+			"customerID":   requestBody.CustomerID,
 			"accountIDs":   response.AccountIDs,
 			"balances":     response.Balances,
 			"totalBalance": totalBalance,

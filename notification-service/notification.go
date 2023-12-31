@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -13,9 +16,9 @@ import (
 )
 
 type notifyRequestBody struct {
-	TransactionID  int    `json:"transactionID" binding:"required"`
-	ReceiverID     int    `json:"receiverID" binding:"required"`
-	Amount         int    `json:"amount" binding:"required"`
+	TransactionID int `json:"transactionID" binding:"required"`
+	ReceiverID    int `json:"receiverID" binding:"required"`
+	Amount        int `json:"amount" binding:"required"`
 }
 
 type getRequestBody struct {
@@ -94,11 +97,11 @@ func (d database) getNotificationFromDatabase(notificationID int) (int, int, int
 	// Get transaction data from the transactions table
 	var transactionID, receiverID, amount int
 	row := d.DB.QueryRow("SELECT transaction_id, receiver_id, amount FROM notifications WHERE id = $1", notificationID)
-	err := row.Scan(&transactionID, &amount, &recipientEmail)
+	err := row.Scan(&transactionID, &receiverID, &amount)
 	if err != nil {
 		return 0, 0, 0, err
 	}
-	return transactionID, amount, recipientEmail, nil
+	return transactionID, receiverID, amount, nil
 }
 
 func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
@@ -128,7 +131,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 }
 
 func sendGetAccountRequest(accountID int, accountService string) (getAccountResponseBody, error) {
-	payload := getAccountRequestPayload {
+	payload := getAccountRequestPayload{
 		AccountID: accountID,
 	}
 
@@ -159,7 +162,7 @@ func sendGetAccountRequest(accountID int, accountService string) (getAccountResp
 }
 
 func sendGetCustomerRequest(customerID int, customerService string) (getCustomerResponseBody, error) {
-	payload := getCustomerRequestPayload {
+	payload := getCustomerRequestPayload{
 		CustomerID: customerID,
 	}
 
@@ -170,7 +173,7 @@ func sendGetCustomerRequest(customerID int, customerService string) (getCustomer
 		return getCustomerResponseBody{}, err
 	}
 
-	url := "http://" + accountService + "/getAccount"
+	url := "http://" + customerService + "/getCustomer"
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {
@@ -222,7 +225,7 @@ func main() {
 			return
 		}
 
-		getAccountResponse, err := sendGetAccountRequest(notifyRequestBody.ReceiverID, accountService)
+		getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -241,7 +244,7 @@ func main() {
 		}
 
 		log.Println("This should be an e-mail trigger, but for now it is only a log message.")
-		
+
 		c.JSON(http.StatusOK, gin.H{
 			"message":        "success",
 			"notificationID": notificationID,

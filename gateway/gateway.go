@@ -26,9 +26,9 @@ func main() {
 		"/getCustomer":              customerServiceURL,
 		"/createAccount":            accountServiceURL,
 		"/deleteAccount":            accountServiceURL,
-		"/deleteAccountsByCustomer": accountServiceURL
+		"/deleteAccountsByCustomer": accountServiceURL,
 		"/getAccount":               accountServiceURL,
-		"/getAccountsByCustomer":    accountServiceURL
+		"/getAccountsByCustomer":    accountServiceURL,
 		"/addToBalance":             accountServiceURL,
 		"/subtractFromBalance":      accountServiceURL,
 		"/transferAmount":           transactionServiceURL,
@@ -37,7 +37,7 @@ func main() {
 		"/notify":                   notificationServiceURL,
 		"/getNotification":          notificationServiceURL,
 		"/getBalanceByCustomer":     balanceServiceURL,
-		"/getBalanceHistory":        balanceServiceURL
+		"/getBalanceHistory":        balanceServiceURL,
 	}
 
 	// Create reverse proxies for each target URL

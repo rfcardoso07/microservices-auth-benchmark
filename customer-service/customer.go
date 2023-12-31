@@ -136,7 +136,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 }
 
 func sendCreateAccountRequest(customerID int, accountService string) (createAccountResponseBody, error) {
-	payload := createAccountRequestPayload {
+	payload := createAccountRequestPayload{
 		CustomerID: customerID,
 	}
 
@@ -167,7 +167,7 @@ func sendCreateAccountRequest(customerID int, accountService string) (createAcco
 }
 
 func sendDeleteAccountsByCustomerRequest(customerID int, accountService string) (deleteAccountsByCustomerResponseBody, error) {
-	payload := deleteAccountsByCustomerRequestPayload {
+	payload := deleteAccountsByCustomerRequestPayload{
 		CustomerID: customerID,
 	}
 
@@ -229,18 +229,18 @@ func main() {
 			return
 		}
 
+		customerID, err := d.createCustomerInDatabase(requestBody.Name, requestBody.Email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
 		response, err := sendCreateAccountRequest(customerID, accountService)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		customerID, err := d.createCustomerInDatabase(requestBody.Name, requestBody.Email)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		
 		c.JSON(http.StatusOK, gin.H{
 			"message":    "success",
 			"customerID": customerID,
@@ -258,7 +258,7 @@ func main() {
 			return
 		}
 
-		response, err := sendDeleteAccountsByCustomerRequest(customerID, accountService)
+		response, err := sendDeleteAccountsByCustomerRequest(requestBody.CustomerID, accountService)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -272,7 +272,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"message":    "success",
 			"customerID": requestBody.CustomerID,
-			"accountIDs": response.AccountIDs
+			"accountIDs": response.AccountIDs,
 		})
 	})
 
