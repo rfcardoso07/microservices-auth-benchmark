@@ -1,5 +1,5 @@
 CREATE TABLE public.users (
-    user_id PRIMARY KEY,
+    user_id VARCHAR(255) PRIMARY KEY,
     user_password VARCHAR(255) NOT NULL,
     can_read BOOLEAN NOT NULL,
     can_write BOOLEAN NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE public.users (
 );
 
 INSERT INTO public.users (user_id, user_password, can_read, can_write, can_delete) VALUES
-    ('john', '12345', 1, 1, 1),
-    ('jane', '23456', 1, 0, 0),
-    ('bob', '34567', 0, 0, 0),
-    ('paul', '45678', 1, 0, 1);
+    ('john', '12345', TRUE, TRUE, TRUE),
+    ('jane', '23456', TRUE, FALSE, FALSE),
+    ('bob', '34567', FALSE, FALSE, FALSE),
+    ('paul', '45678', TRUE, FALSE, TRUE);

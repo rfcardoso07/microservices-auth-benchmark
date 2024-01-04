@@ -4,7 +4,7 @@ up-dbs:
 	docker-compose up -d transaction-database
 	docker-compose up -d notification-database
 	docker-compose up -d balance-database
-	docker-compose up -d auth-service
+	docker-compose up -d auth-database
 	
 migrate-dbs:
 	psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate.sql
