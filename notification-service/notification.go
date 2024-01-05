@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -163,6 +163,25 @@ func hasPermission(operation string, permissions userPermissions) bool {
 	}
 }
 
+func (d database) authenticateAndAuthorize(userID string, userPassword string, operation string) (bool, bool, bool, error) {
+	authorized := false
+	accessGranted := false
+
+	authenticated, permissions, err := d.searchForUserInDatabase(userID, userPassword)
+	if err != nil {
+		return false, false, false, err
+	}
+
+	if authenticated {
+		authorized = hasPermission(operation, permissions)
+		if authorized {
+			accessGranted = true
+		}
+	}
+
+	return authenticated, authorized, accessGranted, nil
+}
+
 func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
 	// Create a POST request with the JSON payload
 	request, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
@@ -181,7 +200,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 	defer response.Body.Close()
 
 	// Read the response body
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -234,6 +234,25 @@ func hasPermission(operation string, permissions userPermissions) bool {
 	}
 }
 
+func (d database) authenticateAndAuthorize(userID string, userPassword string, operation string) (bool, bool, bool, error) {
+	authorized := false
+	accessGranted := false
+
+	authenticated, permissions, err := d.searchForUserInDatabase(userID, userPassword)
+	if err != nil {
+		return false, false, false, err
+	}
+
+	if authenticated {
+		authorized = hasPermission(operation, permissions)
+		if authorized {
+			accessGranted = true
+		}
+	}
+
+	return authenticated, authorized, accessGranted, nil
+}
+
 func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
 	// Create a POST request with the JSON payload
 	request, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
@@ -252,7 +271,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 	defer response.Body.Close()
 
 	// Read the response body
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -316,163 +335,726 @@ func main() {
 	// Create a new Gin router
 	r := gin.Default()
 
-	// Route for creating accounts
-	r.POST("/createAccount", func(c *gin.Context) {
-		var requestBody createRequestBody
+	switch authPattern {
+	case "NO_AUTH":
+		// Route for creating accounts
+		r.POST("/createAccount", func(c *gin.Context) {
+			var requestBody createRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		accountID, err := d.createAccountInDatabase(requestBody.CustomerID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			accountID, err := d.createAccountInDatabase(requestBody.CustomerID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":   "success",
-			"accountID": accountID,
+			c.JSON(http.StatusOK, gin.H{
+				"message":   "success",
+				"accountID": accountID,
+			})
 		})
-	})
 
-	// Route for deleting accounts
-	r.POST("/deleteAccount", func(c *gin.Context) {
-		var requestBody deleteRequestBody
+		// Route for deleting accounts
+		r.POST("/deleteAccount", func(c *gin.Context) {
+			var requestBody deleteRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		if err := d.deleteAccountFromDatabase(requestBody.AccountID); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			if err := d.deleteAccountFromDatabase(requestBody.AccountID); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":   "success",
-			"accountID": requestBody.AccountID,
+			c.JSON(http.StatusOK, gin.H{
+				"message":   "success",
+				"accountID": requestBody.AccountID,
+			})
 		})
-	})
 
-	// Route for deleting accounts by customer
-	r.POST("/deleteAccountsByCustomer", func(c *gin.Context) {
-		var requestBody deleteByCustomerRequestBody
+		// Route for deleting accounts by customer
+		r.POST("/deleteAccountsByCustomer", func(c *gin.Context) {
+			var requestBody deleteByCustomerRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		accountIDs, err := d.deleteAccountsFromDatabaseByCustomer(requestBody.CustomerID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			accountIDs, err := d.deleteAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":    "success",
-			"customerID": requestBody.CustomerID,
-			"accountIDs": accountIDs,
+			c.JSON(http.StatusOK, gin.H{
+				"message":    "success",
+				"customerID": requestBody.CustomerID,
+				"accountIDs": accountIDs,
+			})
 		})
-	})
 
-	// Route for retrieving accounts data
-	r.POST("/getAccount", func(c *gin.Context) {
-		var requestBody getRequestBody
+		// Route for retrieving accounts data
+		r.POST("/getAccount", func(c *gin.Context) {
+			var requestBody getRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		customerID, balance, err := d.getAccountFromDatabase(requestBody.AccountID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			customerID, balance, err := d.getAccountFromDatabase(requestBody.AccountID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":    "success",
-			"accountID":  requestBody.AccountID,
-			"customerID": customerID,
-			"balance":    balance,
+			c.JSON(http.StatusOK, gin.H{
+				"message":    "success",
+				"accountID":  requestBody.AccountID,
+				"customerID": customerID,
+				"balance":    balance,
+			})
 		})
-	})
 
-	// Route for retrieving accounts data by customer
-	r.POST("/getAccountsByCustomer", func(c *gin.Context) {
-		var requestBody getByCustomerRequestBody
+		// Route for retrieving accounts data by customer
+		r.POST("/getAccountsByCustomer", func(c *gin.Context) {
+			var requestBody getByCustomerRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		accountIDs, balances, err := d.getAccountsFromDatabaseByCustomer(requestBody.CustomerID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			accountIDs, balances, err := d.getAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":    "success",
-			"customerID": requestBody.CustomerID,
-			"accountIDs": accountIDs,
-			"balances":   balances,
+			c.JSON(http.StatusOK, gin.H{
+				"message":    "success",
+				"customerID": requestBody.CustomerID,
+				"accountIDs": accountIDs,
+				"balances":   balances,
+			})
 		})
-	})
 
-	// Route for adding amounts to account balances
-	r.POST("/addToBalance", func(c *gin.Context) {
-		var requestBody addToBalanceRequestBody
+		// Route for adding amounts to account balances
+		r.POST("/addToBalance", func(c *gin.Context) {
+			var requestBody addToBalanceRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		if err := d.addToAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			if err := d.addToAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":     "success",
-			"accountID":   requestBody.AccountID,
-			"amountAdded": requestBody.Amount,
+			c.JSON(http.StatusOK, gin.H{
+				"message":     "success",
+				"accountID":   requestBody.AccountID,
+				"amountAdded": requestBody.Amount,
+			})
 		})
-	})
 
-	// Route for subtracting amounts from account balances
-	r.POST("/subtractFromBalance", func(c *gin.Context) {
-		var requestBody subtractFromBalanceRequestBody
+		// Route for subtracting amounts from account balances
+		r.POST("/subtractFromBalance", func(c *gin.Context) {
+			var requestBody subtractFromBalanceRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		if err := d.subtractFromAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			if err := d.subtractFromAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":          "success",
-			"accountID":        requestBody.AccountID,
-			"amountSubtracted": requestBody.Amount,
+			c.JSON(http.StatusOK, gin.H{
+				"message":          "success",
+				"accountID":        requestBody.AccountID,
+				"amountSubtracted": requestBody.Amount,
+			})
 		})
-	})
+
+	case "CENTRALIZED":
+		// Route for creating accounts
+		r.POST("/createAccount/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody createRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				accountID, err := d.createAccountInDatabase(requestBody.CustomerID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":   "success",
+					"accountID": accountID,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for deleting accounts
+		r.POST("/deleteAccount/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody deleteRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				if err := d.deleteAccountFromDatabase(requestBody.AccountID); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":   "success",
+					"accountID": requestBody.AccountID,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for deleting accounts by customer
+		r.POST("/deleteAccountsByCustomer/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody deleteByCustomerRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				accountIDs, err := d.deleteAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":    "success",
+					"customerID": requestBody.CustomerID,
+					"accountIDs": accountIDs,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for retrieving accounts data
+		r.POST("/getAccount/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody getRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				customerID, balance, err := d.getAccountFromDatabase(requestBody.AccountID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":    "success",
+					"accountID":  requestBody.AccountID,
+					"customerID": customerID,
+					"balance":    balance,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for retrieving accounts data by customer
+		r.POST("/getAccountsByCustomer/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody getByCustomerRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				accountIDs, balances, err := d.getAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":    "success",
+					"customerID": requestBody.CustomerID,
+					"accountIDs": accountIDs,
+					"balances":   balances,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for adding amounts to account balances
+		r.POST("/addToBalance/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody addToBalanceRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				if err := d.addToAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":     "success",
+					"accountID":   requestBody.AccountID,
+					"amountAdded": requestBody.Amount,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for subtracting amounts from account balances
+		r.POST("/subtractFromBalance/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody subtractFromBalanceRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				if err := d.subtractFromAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":          "success",
+					"accountID":        requestBody.AccountID,
+					"amountSubtracted": requestBody.Amount,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+	case "DECENTRALIZED":
+		// Route for creating accounts
+		r.POST("/createAccount/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody createRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				accountID, err := d.createAccountInDatabase(requestBody.CustomerID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":   "success",
+					"accountID": accountID,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for deleting accounts
+		r.POST("/deleteAccount/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody deleteRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				if err := d.deleteAccountFromDatabase(requestBody.AccountID); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":   "success",
+					"accountID": requestBody.AccountID,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for deleting accounts by customer
+		r.POST("/deleteAccountsByCustomer/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody deleteByCustomerRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				accountIDs, err := d.deleteAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":    "success",
+					"customerID": requestBody.CustomerID,
+					"accountIDs": accountIDs,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for retrieving accounts data
+		r.POST("/getAccount/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody getRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				customerID, balance, err := d.getAccountFromDatabase(requestBody.AccountID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":    "success",
+					"accountID":  requestBody.AccountID,
+					"customerID": customerID,
+					"balance":    balance,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for retrieving accounts data by customer
+		r.POST("/getAccountsByCustomer/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody getByCustomerRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				accountIDs, balances, err := d.getAccountsFromDatabaseByCustomer(requestBody.CustomerID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":    "success",
+					"customerID": requestBody.CustomerID,
+					"accountIDs": accountIDs,
+					"balances":   balances,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for adding amounts to account balances
+		r.POST("/addToBalance/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody addToBalanceRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				if err := d.addToAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":     "success",
+					"accountID":   requestBody.AccountID,
+					"amountAdded": requestBody.Amount,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for subtracting amounts from account balances
+		r.POST("/subtractFromBalance/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody subtractFromBalanceRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				if err := d.subtractFromAccountBalanceInDatabase(requestBody.AccountID, requestBody.Amount); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":          "success",
+					"accountID":        requestBody.AccountID,
+					"amountSubtracted": requestBody.Amount,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+	default:
+		log.Printf("Unexpected APPLICATION_AUTH_PATTERN: %v", authPattern)
+		return
+	}
 
 	// Run the server on port 8082
 	r.Run(":8082")
