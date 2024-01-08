@@ -328,67 +328,268 @@ func main() {
 	// Create a new Gin router
 	r := gin.Default()
 
-	// Route for sending notifications
-	r.POST("/notify", func(c *gin.Context) {
-		var requestBody notifyRequestBody
+	switch authPattern {
+	case "NO_AUTH":
+		// Route for sending notifications
+		r.POST("/notify", func(c *gin.Context) {
+			var requestBody notifyRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		notificationID, err := d.registerNotificationInDatabase(requestBody.TransactionID, requestBody.ReceiverID, requestBody.Amount)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			notificationID, err := d.registerNotificationInDatabase(requestBody.TransactionID, requestBody.ReceiverID, requestBody.Amount)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		log.Println("This should be an e-mail trigger, but for now it is only a log message.")
+			log.Println("This should be an e-mail trigger, but for now it is only a log message.")
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":        "success",
-			"notificationID": notificationID,
-			"recipientEmail": getCustomerResponse.CustomerEmail,
+			c.JSON(http.StatusOK, gin.H{
+				"message":        "success",
+				"notificationID": notificationID,
+				"recipientEmail": getCustomerResponse.CustomerEmail,
+			})
 		})
-	})
 
-	// Route for retrieving notifications data
-	r.POST("/getNotification", func(c *gin.Context) {
-		var requestBody getRequestBody
+		// Route for retrieving notifications data
+		r.POST("/getNotification", func(c *gin.Context) {
+			var requestBody getRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		transactionID, receiverID, amount, err := d.getNotificationFromDatabase(requestBody.NotificationID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			transactionID, receiverID, amount, err := d.getNotificationFromDatabase(requestBody.NotificationID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":        "success",
-			"notificationID": requestBody.NotificationID,
-			"transactionID":  transactionID,
-			"receiverID":     receiverID,
-			"amount":         amount,
+			c.JSON(http.StatusOK, gin.H{
+				"message":        "success",
+				"notificationID": requestBody.NotificationID,
+				"transactionID":  transactionID,
+				"receiverID":     receiverID,
+				"amount":         amount,
+			})
 		})
-	})
+
+	case "CENTRALIZED":
+		// Route for sending notifications
+		r.POST("/notify/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody notifyRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				notificationID, err := d.registerNotificationInDatabase(requestBody.TransactionID, requestBody.ReceiverID, requestBody.Amount)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				log.Println("This should be an e-mail trigger, but for now it is only a log message.")
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":        "success",
+					"notificationID": notificationID,
+					"recipientEmail": getCustomerResponse.CustomerEmail,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for retrieving notifications data
+		r.POST("/getNotification/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody getRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				transactionID, receiverID, amount, err := d.getNotificationFromDatabase(requestBody.NotificationID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":        "success",
+					"notificationID": requestBody.NotificationID,
+					"transactionID":  transactionID,
+					"receiverID":     receiverID,
+					"amount":         amount,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+	case "DECENTRALIZED":
+		// Route for sending notifications
+		r.POST("/notify/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody notifyRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				notificationID, err := d.registerNotificationInDatabase(requestBody.TransactionID, requestBody.ReceiverID, requestBody.Amount)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				log.Println("This should be an e-mail trigger, but for now it is only a log message.")
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":        "success",
+					"notificationID": notificationID,
+					"recipientEmail": getCustomerResponse.CustomerEmail,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for retrieving notifications data
+		r.POST("/getNotification/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody getRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				transactionID, receiverID, amount, err := d.getNotificationFromDatabase(requestBody.NotificationID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":        "success",
+					"notificationID": requestBody.NotificationID,
+					"transactionID":  transactionID,
+					"receiverID":     receiverID,
+					"amount":         amount,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+	default:
+		log.Printf("Unexpected APPLICATION_AUTH_PATTERN: %v", authPattern)
+		return
+	}
 
 	// Run the server on port 8086
 	r.Run(":8086")

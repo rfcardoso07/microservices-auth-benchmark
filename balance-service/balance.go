@@ -304,65 +304,262 @@ func main() {
 	// Create a new Gin router
 	r := gin.Default()
 
-	// Route for getting customers total balance
-	r.POST("/getBalanceByCustomer", func(c *gin.Context) {
-		var requestBody getRequestBody
+	switch authPattern {
+	case "NO_AUTH":
+		// Route for getting customers total balance
+		r.POST("/getBalanceByCustomer", func(c *gin.Context) {
+			var requestBody getRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		response, err := sendGetAccountsByCustomerRequest(requestBody.CustomerID, accountService)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			response, err := sendGetAccountsByCustomerRequest(requestBody.CustomerID, accountService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		totalBalance := 0
-		for _, balance := range response.Balances {
-			totalBalance += balance
-		}
+			totalBalance := 0
+			for _, balance := range response.Balances {
+				totalBalance += balance
+			}
 
-		err = d.registerBalanceInDatabase(requestBody.CustomerID, totalBalance)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			err = d.registerBalanceInDatabase(requestBody.CustomerID, totalBalance)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":      "success",
-			"customerID":   requestBody.CustomerID,
-			"accountIDs":   response.AccountIDs,
-			"balances":     response.Balances,
-			"totalBalance": totalBalance,
+			c.JSON(http.StatusOK, gin.H{
+				"message":      "success",
+				"customerID":   requestBody.CustomerID,
+				"accountIDs":   response.AccountIDs,
+				"balances":     response.Balances,
+				"totalBalance": totalBalance,
+			})
 		})
-	})
 
-	// Route for deleting customers
-	r.POST("/getBalanceHistory", func(c *gin.Context) {
-		var requestBody getHistoryRequestBody
+		// Route for deleting customers
+		r.POST("/getBalanceHistory", func(c *gin.Context) {
+			var requestBody getHistoryRequestBody
 
-		// Bind the JSON body to the RequestBody struct
-		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+			// Bind the JSON body to the RequestBody struct
+			if err := c.BindJSON(&requestBody); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		totalBalances, timestamps, err := d.getLatestRecordsFromDatabase(requestBody.CustomerID, requestBody.NumberOfRecords)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+			totalBalances, timestamps, err := d.getLatestRecordsFromDatabase(requestBody.CustomerID, requestBody.NumberOfRecords)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message":          "success",
-			"customerID":       requestBody.CustomerID,
-			"totalBalances":    totalBalances,
-			"recordTimestamps": timestamps,
+			c.JSON(http.StatusOK, gin.H{
+				"message":          "success",
+				"customerID":       requestBody.CustomerID,
+				"totalBalances":    totalBalances,
+				"recordTimestamps": timestamps,
+			})
 		})
-	})
+
+	case "CENTRALIZED":
+		// Route for getting customers total balance
+		r.POST("/getBalanceByCustomer/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody getRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				response, err := sendGetAccountsByCustomerRequest(requestBody.CustomerID, accountService)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				totalBalance := 0
+				for _, balance := range response.Balances {
+					totalBalance += balance
+				}
+
+				err = d.registerBalanceInDatabase(requestBody.CustomerID, totalBalance)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":      "success",
+					"customerID":   requestBody.CustomerID,
+					"accountIDs":   response.AccountIDs,
+					"balances":     response.Balances,
+					"totalBalance": totalBalance,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+		// Route for deleting customers
+		r.POST("/getBalanceHistory/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if authResponse.AccessGranted {
+				var requestBody getHistoryRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				totalBalances, timestamps, err := d.getLatestRecordsFromDatabase(requestBody.CustomerID, requestBody.NumberOfRecords)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":          "success",
+					"customerID":       requestBody.CustomerID,
+					"totalBalances":    totalBalances,
+					"recordTimestamps": timestamps,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authResponse.Authenticated,
+					"authorized":    authResponse.Authorized,
+				})
+			}
+		})
+
+	case "DECENTRALIZED":
+		// Route for getting customers total balance
+		r.POST("/getBalanceByCustomer/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody getRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				response, err := sendGetAccountsByCustomerRequest(requestBody.CustomerID, accountService)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				totalBalance := 0
+				for _, balance := range response.Balances {
+					totalBalance += balance
+				}
+
+				err = d.registerBalanceInDatabase(requestBody.CustomerID, totalBalance)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":      "success",
+					"customerID":   requestBody.CustomerID,
+					"accountIDs":   response.AccountIDs,
+					"balances":     response.Balances,
+					"totalBalance": totalBalance,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+		// Route for deleting customers
+		r.POST("/getBalanceHistory/:id/:password", func(c *gin.Context) {
+			userID := c.Param("id")
+			userPassword := c.Param("password")
+
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			if accessGranted {
+				var requestBody getHistoryRequestBody
+
+				// Bind the JSON body to the RequestBody struct
+				if err := c.BindJSON(&requestBody); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+
+				totalBalances, timestamps, err := d.getLatestRecordsFromDatabase(requestBody.CustomerID, requestBody.NumberOfRecords)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"message":          "success",
+					"customerID":       requestBody.CustomerID,
+					"totalBalances":    totalBalances,
+					"recordTimestamps": timestamps,
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message":       "accessDenied",
+					"authenticated": authenticated,
+					"authorized":    authorized,
+				})
+			}
+		})
+
+	default:
+		log.Printf("Unexpected APPLICATION_AUTH_PATTERN: %v", authPattern)
+		return
+	}
 
 	// Run the server on port 8088
 	r.Run(":8088")
