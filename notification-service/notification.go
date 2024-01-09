@@ -208,7 +208,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 	return body, nil
 }
 
-func sendGetAccountRequest(accountID int, accountService string) (getAccountResponseBody, error) {
+func sendGetAccountRequest(accountID int, accountService string, userID string, userPassword string) (getAccountResponseBody, error) {
 	payload := getAccountRequestPayload{
 		AccountID: accountID,
 	}
@@ -221,6 +221,9 @@ func sendGetAccountRequest(accountID int, accountService string) (getAccountResp
 	}
 
 	url := "http://" + accountService + "/getAccount"
+	if userID != "" && userPassword != "" {
+		url = url + "/" + userID + "/" + userPassword
+	}
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {
@@ -239,7 +242,7 @@ func sendGetAccountRequest(accountID int, accountService string) (getAccountResp
 	return response, nil
 }
 
-func sendGetCustomerRequest(customerID int, customerService string) (getCustomerResponseBody, error) {
+func sendGetCustomerRequest(customerID int, customerService string, userID string, userPassword string) (getCustomerResponseBody, error) {
 	payload := getCustomerRequestPayload{
 		CustomerID: customerID,
 	}
@@ -252,6 +255,9 @@ func sendGetCustomerRequest(customerID int, customerService string) (getCustomer
 	}
 
 	url := "http://" + customerService + "/getCustomer"
+	if userID != "" && userPassword != "" {
+		url = url + "/" + userID + "/" + userPassword
+	}
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {
@@ -340,13 +346,13 @@ func main() {
 				return
 			}
 
-			getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
+			getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 
-			getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService)
+			getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -413,13 +419,13 @@ func main() {
 					return
 				}
 
-				getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
+				getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
 
-				getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService)
+				getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -510,13 +516,13 @@ func main() {
 					return
 				}
 
-				getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService)
+				getAccountResponse, err := sendGetAccountRequest(requestBody.ReceiverID, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
 
-				getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService)
+				getCustomerResponse, err := sendGetCustomerRequest(getAccountResponse.CustomerID, customerService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return

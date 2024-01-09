@@ -213,7 +213,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 	return body, nil
 }
 
-func sendCreateAccountRequest(customerID int, accountService string) (createAccountResponseBody, error) {
+func sendCreateAccountRequest(customerID int, accountService string, userID string, userPassword string) (createAccountResponseBody, error) {
 	payload := createAccountRequestPayload{
 		CustomerID: customerID,
 	}
@@ -226,6 +226,9 @@ func sendCreateAccountRequest(customerID int, accountService string) (createAcco
 	}
 
 	url := "http://" + accountService + "/createAccount"
+	if userID != "" && userPassword != "" {
+		url = url + "/" + userID + "/" + userPassword
+	}
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {
@@ -244,7 +247,7 @@ func sendCreateAccountRequest(customerID int, accountService string) (createAcco
 	return response, nil
 }
 
-func sendDeleteAccountsByCustomerRequest(customerID int, accountService string) (deleteAccountsByCustomerResponseBody, error) {
+func sendDeleteAccountsByCustomerRequest(customerID int, accountService string, userID string, userPassword string) (deleteAccountsByCustomerResponseBody, error) {
 	payload := deleteAccountsByCustomerRequestPayload{
 		CustomerID: customerID,
 	}
@@ -257,6 +260,9 @@ func sendDeleteAccountsByCustomerRequest(customerID int, accountService string) 
 	}
 
 	url := "http://" + accountService + "/deleteAccountsByCustomer"
+	if userID != "" && userPassword != "" {
+		url = url + "/" + userID + "/" + userPassword
+	}
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {
@@ -352,7 +358,7 @@ func main() {
 				return
 			}
 
-			response, err := sendCreateAccountRequest(customerID, accountService)
+			response, err := sendCreateAccountRequest(customerID, accountService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -375,7 +381,7 @@ func main() {
 				return
 			}
 
-			response, err := sendDeleteAccountsByCustomerRequest(requestBody.CustomerID, accountService)
+			response, err := sendDeleteAccountsByCustomerRequest(requestBody.CustomerID, accountService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -444,7 +450,7 @@ func main() {
 					return
 				}
 
-				response, err := sendCreateAccountRequest(customerID, accountService)
+				response, err := sendCreateAccountRequest(customerID, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -484,7 +490,7 @@ func main() {
 					return
 				}
 
-				response, err := sendDeleteAccountsByCustomerRequest(requestBody.CustomerID, accountService)
+				response, err := sendDeleteAccountsByCustomerRequest(requestBody.CustomerID, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -576,7 +582,7 @@ func main() {
 					return
 				}
 
-				response, err := sendCreateAccountRequest(customerID, accountService)
+				response, err := sendCreateAccountRequest(customerID, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -616,7 +622,7 @@ func main() {
 					return
 				}
 
-				response, err := sendDeleteAccountsByCustomerRequest(requestBody.CustomerID, accountService)
+				response, err := sendDeleteAccountsByCustomerRequest(requestBody.CustomerID, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return

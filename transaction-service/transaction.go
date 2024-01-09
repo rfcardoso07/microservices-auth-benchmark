@@ -225,7 +225,7 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 	return body, nil
 }
 
-func sendAddToAccountRequest(accountID int, amount int, accountService string) (addToAccountResponseBody, error) {
+func sendAddToAccountRequest(accountID int, amount int, accountService string, userID string, userPassword string) (addToAccountResponseBody, error) {
 	payload := addToAccountRequestPayload{
 		AccountID: accountID,
 		Amount:    amount,
@@ -239,6 +239,9 @@ func sendAddToAccountRequest(accountID int, amount int, accountService string) (
 	}
 
 	url := "http://" + accountService + "/addToBalance"
+	if userID != "" && userPassword != "" {
+		url = url + "/" + userID + "/" + userPassword
+	}
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {
@@ -257,7 +260,7 @@ func sendAddToAccountRequest(accountID int, amount int, accountService string) (
 	return response, nil
 }
 
-func sendSubtractFromAccountRequest(accountID int, amount int, accountService string) (subtractFromAccountResponseBody, error) {
+func sendSubtractFromAccountRequest(accountID int, amount int, accountService string, userID string, userPassword string) (subtractFromAccountResponseBody, error) {
 	payload := subtractFromAccountRequestPayload{
 		AccountID: accountID,
 		Amount:    amount,
@@ -271,6 +274,9 @@ func sendSubtractFromAccountRequest(accountID int, amount int, accountService st
 	}
 
 	url := "http://" + accountService + "/subtractFromBalance"
+	if userID != "" && userPassword != "" {
+		url = url + "/" + userID + "/" + userPassword
+	}
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {
@@ -289,7 +295,7 @@ func sendSubtractFromAccountRequest(accountID int, amount int, accountService st
 	return response, nil
 }
 
-func sendNotifyRequest(transactionID int, amount int, receiverID int, notificationService string) (notifyResponseBody, error) {
+func sendNotifyRequest(transactionID int, amount int, receiverID int, notificationService string, userID string, userPassword string) (notifyResponseBody, error) {
 	payload := notifyRequestPayload{
 		TransactionID: transactionID,
 		Amount:        amount,
@@ -392,13 +398,13 @@ func main() {
 				return
 			}
 
-			subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService)
+			subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 
-			addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService)
+			addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -428,13 +434,13 @@ func main() {
 				return
 			}
 
-			subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService)
+			subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 
-			addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService)
+			addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -446,7 +452,7 @@ func main() {
 				return
 			}
 
-			notifyResponse, err := sendNotifyRequest(transactionID, requestBody.ReceiverID, requestBody.Amount, notificationService)
+			notifyResponse, err := sendNotifyRequest(transactionID, requestBody.ReceiverID, requestBody.Amount, notificationService, "", "")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -507,13 +513,13 @@ func main() {
 					return
 				}
 
-				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService)
+				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
 
-				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService)
+				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -560,13 +566,13 @@ func main() {
 					return
 				}
 
-				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService)
+				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
 
-				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService)
+				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -578,7 +584,7 @@ func main() {
 					return
 				}
 
-				notifyResponse, err := sendNotifyRequest(transactionID, requestBody.ReceiverID, requestBody.Amount, notificationService)
+				notifyResponse, err := sendNotifyRequest(transactionID, requestBody.ReceiverID, requestBody.Amount, notificationService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -663,13 +669,13 @@ func main() {
 					return
 				}
 
-				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService)
+				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
 
-				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService)
+				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -716,13 +722,13 @@ func main() {
 					return
 				}
 
-				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService)
+				subtractResponse, err := sendSubtractFromAccountRequest(requestBody.SenderID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
 
-				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService)
+				addResponse, err := sendAddToAccountRequest(requestBody.ReceiverID, requestBody.Amount, accountService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -734,7 +740,7 @@ func main() {
 					return
 				}
 
-				notifyResponse, err := sendNotifyRequest(transactionID, requestBody.ReceiverID, requestBody.Amount, notificationService)
+				notifyResponse, err := sendNotifyRequest(transactionID, requestBody.ReceiverID, requestBody.Amount, notificationService, userID, userPassword)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
