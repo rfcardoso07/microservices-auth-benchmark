@@ -452,7 +452,7 @@ func main() {
 			userID := c.Param("id")
 			userPassword := c.Param("password")
 
-			authResponse, err := sendAuthRequest(userID, userPassword, "WRITE", authService)
+			authResponse, err := sendAuthRequest(userID, userPassword, "READ", authService)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -549,7 +549,7 @@ func main() {
 			userID := c.Param("id")
 			userPassword := c.Param("password")
 
-			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "READ")
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
