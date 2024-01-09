@@ -358,7 +358,7 @@ func main() {
 				return
 			}
 
-			log.Println("This should be an e-mail trigger, but for now it is only a log message.")
+			log.Printf("Notifying %v of transaction %v", getCustomerResponse.CustomerEmail, requestBody.TransactionID)
 
 			c.JSON(http.StatusOK, gin.H{
 				"message":        "success",
@@ -431,7 +431,7 @@ func main() {
 					return
 				}
 
-				log.Println("This should be an e-mail trigger, but for now it is only a log message.")
+				log.Printf("Notifying %v of transaction %v", getCustomerResponse.CustomerEmail, requestBody.TransactionID)
 
 				c.JSON(http.StatusOK, gin.H{
 					"message":        "success",
@@ -528,7 +528,8 @@ func main() {
 					return
 				}
 
-				log.Println("This should be an e-mail trigger, but for now it is only a log message.")
+				// This is where an e-mail would be sent.
+				log.Printf("Notifying %v of transaction %v...", getCustomerResponse.CustomerEmail, requestBody.TransactionID)
 
 				c.JSON(http.StatusOK, gin.H{
 					"message":        "success",
