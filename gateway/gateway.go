@@ -67,8 +67,8 @@ func main() {
 	}
 
 	// Associate the forwardHandler with different paths
-	for path, _ := range forwardURLs {
-		router.Any(path, forwardHandler)
+	for path := range forwardURLs {
+		router.POST(path, forwardHandler)
 	}
 
 	// Run the Gin server on port 8000
