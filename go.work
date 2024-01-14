@@ -5,6 +5,7 @@ use (
 	./auth-service
 	./balance-service
 	./customer-service
+	./gateway
 	./notification-service
 	./transaction-service
 )
