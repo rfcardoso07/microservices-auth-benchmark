@@ -14,22 +14,6 @@ import (
 func main() {
 	gin.SetMode(os.Getenv("GIN_MODE"))
 
-	d := database{
-		Host:     os.Getenv("CUSTOMER_SERVICE_DATABASE_HOST"),
-		Port:     os.Getenv("CUSTOMER_SERVICE_DATABASE_PORT"),
-		User:     os.Getenv("CUSTOMER_SERVICE_DATABASE_USER"),
-		Password: os.Getenv("CUSTOMER_SERVICE_DATABASE_PASSWORD"),
-		Name:     os.Getenv("CUSTOMER_SERVICE_DATABASE_NAME"),
-		DB:       &sql.DB{},
-	}
-
-	err := d.init()
-	if err != nil {
-		return
-	}
-
-	defer d.DB.Close()
-
 	router := gin.Default()
 
 	customerServiceURL := os.Getenv("CUSTOMER_SERVICE_URL")
@@ -93,6 +77,22 @@ func main() {
 	}
 
 	if gatewayAuth == "TRUE" {
+		d := database{
+			Host:     os.Getenv("GATEWAY_DATABASE_HOST"),
+			Port:     os.Getenv("GATEWAY_DATABASE_PORT"),
+			User:     os.Getenv("GATEWAY_DATABASE_USER"),
+			Password: os.Getenv("GATEWAY_DATABASE_PASSWORD"),
+			Name:     os.Getenv("GATEWAY_DATABASE_NAME"),
+			DB:       &sql.DB{},
+		}
+
+		err := d.init()
+		if err != nil {
+			return
+		}
+
+		defer d.DB.Close()
+
 		// Define a handler which enforces auth before forwarding requests to the appropriate services
 		forwardHandler := func(c *gin.Context) {
 			path := c.Request.URL.Path
