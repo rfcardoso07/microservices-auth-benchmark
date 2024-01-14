@@ -61,6 +61,27 @@ func main() {
 		"/getBalanceHistory":        balanceServiceURL,
 	}
 
+	// Define the operation types for different paths
+	operationTypes := map[string]string{
+		"/createCustomer":           "WRITE",
+		"/deleteCustomer":           "DELETE",
+		"/getCustomer":              "READ",
+		"/createAccount":            "WRITE",
+		"/deleteAccount":            "DELETE",
+		"/deleteAccountsByCustomer": "DELETE",
+		"/getAccount":               "READ",
+		"/getAccountsByCustomer":    "READ",
+		"/addToBalance":             "WRITE",
+		"/subtractFromBalance":      "WRITE",
+		"/transferAmount":           "WRITE",
+		"/transferAmountAndNotify":  "WRITE",
+		"/getTransaction":           "READ",
+		"/notify":                   "WRITE",
+		"/getNotification":          "READ",
+		"/getBalanceByCustomer":     "READ",
+		"/getBalanceHistory":        "READ",
+	}
+
 	// Create reverse proxies for each target URL
 	proxies := make(map[string]*httputil.ReverseProxy)
 	for path, targetURL := range forwardURLs {
@@ -86,7 +107,7 @@ func main() {
 			userID := c.Param("id")
 			userPassword := c.Param("password")
 
-			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, "WRITE")
+			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, operationTypes[path])
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
