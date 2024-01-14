@@ -33,7 +33,7 @@ func hasPermission(operation string, permissions userPermissions) bool {
 }
 
 func main() {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	d := database{
 		Host:     os.Getenv("AUTH_SERVICE_DATABASE_HOST"),

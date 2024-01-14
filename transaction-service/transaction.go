@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	d := database{
 		Host:     os.Getenv("TRANSACTION_SERVICE_DATABASE_HOST"),
