@@ -111,10 +111,10 @@ up-edge:
 
 up-centralized:
 	$(MAKE) up-dbs-auth
-	$(MAKE) migrate-release
+	$(MAKE) migrate-auth-release
 	$(MAKE) centralized-release
 
 up-decentralized:
 	$(MAKE) up-dbs-auth
-	$(MAKE) migrate-release
+	$(MAKE) migrate-auth-release
 	$(MAKE) decentralized-release
