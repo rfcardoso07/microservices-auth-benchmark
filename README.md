@@ -1,8 +1,14 @@
+# Microservices Auth Benchmark
+
+## Application Architecture
+
+![Architecture](architecture.png)
+
 ## Service Endpoints
 
 ### Customer Service
 
-`/createCustomer`
+#### `/createCustomer`
 
 **Request Body**
 ```json
@@ -20,7 +26,7 @@
 }
 ```
 
-`/deleteCustomer`
+#### `/deleteCustomer`
 
 **Request Body**
 ```json
@@ -37,7 +43,7 @@
 }
 ```
 
-`/getCustomer`
+#### `/getCustomer`
 
 **Request Body**
 ```json
@@ -57,7 +63,7 @@
 
 ### Account Service
 
-`/createAccount`
+#### `/createAccount`
 
 **Request Body**
 ```json
@@ -73,7 +79,7 @@
 }
 ```
 
-`/deleteAccount`
+#### `/deleteAccount`
 
 **Request Body**
 ```json
@@ -89,7 +95,7 @@
 }
 ```
 
-`/deleteAccountsByCustomer`
+#### `/deleteAccountsByCustomer`
 
 **Request Body**
 ```json
@@ -106,7 +112,7 @@
 }
 ```
 
-`/getAccount`
+#### `/getAccount`
 
 **Request Body**
 ```json
@@ -124,7 +130,7 @@
 }
 ```
 
-`/getAccountsByCustomer`
+#### `/getAccountsByCustomer`
 
 **Request Body**
 ```json
@@ -142,7 +148,7 @@
 }
 ```
 
-`/addToBalance`
+#### `/addToBalance`
 
 **Request Body**
 ```json
@@ -160,7 +166,7 @@
 }
 ```
 
-`/subtractFromBalance`
+#### `/subtractFromBalance`
 
 **Request Body**
 ```json
@@ -180,7 +186,7 @@
 
 ### Transaction Service
 
-`/transferAmount`
+#### `/transferAmount`
 
 **Request Body**
 ```json
@@ -200,7 +206,7 @@
 }
 ```
 
-`/transferAmountAndNotify`
+#### `/transferAmountAndNotify`
 
 **Request Body**
 ```json
@@ -221,7 +227,7 @@
 }
 ```
 
-`/getTransaction`
+#### `/getTransaction`
 
 **Request Body**
 ```json
@@ -242,7 +248,7 @@
 
 ### Notification Service
 
-`/notify`
+#### `/notify`
 
 **Request Body**
 ```json
@@ -261,7 +267,7 @@
 }
 ```
 
-`/getNotification`
+#### `/getNotification`
 
 **Request Body**
 ```json
@@ -282,7 +288,7 @@
 
 ### Balance Service
 
-`/getBalanceByCustomer`
+#### `/getBalanceByCustomer`
 
 **Request Body**
 ```json
@@ -301,7 +307,7 @@
 }
 ```
 
-`/getBalanceHistory`
+#### `/getBalanceHistory`
 
 **Request Body**
 ```json
@@ -320,7 +326,7 @@
 }
 ```
 
-## Inter-Service Communications
+## Inter-Service Communication
 
 ### Account Service
 
