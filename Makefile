@@ -5,7 +5,7 @@ up-dbs:
 	docker-compose up -d notification-database
 	docker-compose up -d balance-database
 
-up-dbs-auth:
+up-all-dbs:
 	$(MAKE) up-dbs
 	docker-compose up -d auth-database
 
@@ -105,16 +105,16 @@ up-noauth:
 	$(MAKE) noauth-release
 
 up-edge:
-	$(MAKE) up-dbs-auth
+	$(MAKE) up-all-dbs
 	$(MAKE) migrate-auth-release
 	$(MAKE) edge-release
 
 up-centralized:
-	$(MAKE) up-dbs-auth
+	$(MAKE) up-all-dbs
 	$(MAKE) migrate-auth-release
 	$(MAKE) centralized-release
 
 up-decentralized:
-	$(MAKE) up-dbs-auth
+	$(MAKE) up-all-dbs
 	$(MAKE) migrate-auth-release
 	$(MAKE) decentralized-release
