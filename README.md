@@ -4,14 +4,14 @@
 
 `/createCustomer`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerName": "Alice",
     "customerEmail": "alice@gmail.com"
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -22,13 +22,13 @@ Response Body
 
 `/deleteCustomer`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -39,13 +39,13 @@ Response Body
 
 `/getCustomer`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -59,13 +59,13 @@ Response Body
 
 `/createAccount`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -75,13 +75,13 @@ Response Body
 
 `/deleteAccount`
 
-Request Body
+**Request Body**
 ```json
 {
     "accountID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -91,13 +91,13 @@ Response Body
 
 `/deleteAccountsByCustomer`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -108,13 +108,13 @@ Response Body
 
 `/getAccount`
 
-Request Body
+**Request Body**
 ```json
 {
     "accountID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -126,13 +126,13 @@ Response Body
 
 `/getAccountsByCustomer`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -144,14 +144,14 @@ Response Body
 
 `/addToBalance`
 
-Request Body
+**Request Body**
 ```json
 {
     "accountID": 1,
     "amount": 50
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -162,14 +162,14 @@ Response Body
 
 `/subtractFromBalance`
 
-Request Body
+**Request Body**
 ```json
 {
     "accountID": 1,
     "amount": 50
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -182,7 +182,7 @@ Response Body
 
 `/transferAmount`
 
-Request Body
+**Request Body**
 ```json
 {
     "senderID": 1,
@@ -190,7 +190,7 @@ Request Body
     "amount": 50
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -202,7 +202,7 @@ Response Body
 
 `/transferAmountAndNotify`
 
-Request Body
+**Request Body**
 ```json
 {
     "senderID": 1,
@@ -210,7 +210,7 @@ Request Body
     "amount": 50
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -223,13 +223,13 @@ Response Body
 
 `/getTransaction`
 
-Request Body
+**Request Body**
 ```json
 {
     "transactionID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -244,7 +244,7 @@ Response Body
 
 `/notify`
 
-Request Body
+**Request Body**
 ```json
 {
     "transactionID": 1,
@@ -252,7 +252,7 @@ Request Body
     "amount": 50
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -263,13 +263,13 @@ Response Body
 
 `/getNotification`
 
-Request Body
+**Request Body**
 ```json
 {
     "notificationID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -284,13 +284,13 @@ Response Body
 
 `/getBalanceByCustomer`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerID": 1
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -303,14 +303,14 @@ Response Body
 
 `/getBalanceHistory`
 
-Request Body
+**Request Body**
 ```json
 {
     "customerID": 1,
     "numberOfRecords": 5
 }
 ```
-Response Body
+**Response Body**
 ```json
 {
     "message": "success",
@@ -324,68 +324,56 @@ Response Body
 
 ### Account Service
 
-Account Service <> Create Account
+- Account Service <> **Create Account**
 
-Account Service <> Delete Account
+- Account Service <> **Delete Account**
 
-Account Service <> Delete Accounts By Customer
+- Account Service <> **Delete Accounts By Customer**
 
-Account Service <> Add To Balance
+- Account Service <> **Add To Balance**
 
-Account Service <> Subtract From Balance
+- Account Service <> **Subtract From Balance**
 
-Account Service <> Get Account
+- Account Service <> **Get Account**
 
-Account Service <> Get Accounts By Customer
+- Account Service <> **Get Accounts By Customer**
 
 ### Customer Service
 
-Customer Service <> Create Customer
+- Customer Service <> **Create Customer**
+    - Account Service <> **Create Account**
 
-    > Account Service <> Create Account
+- Customer Service <> **Delete Customer**
+    - Account Service <> **Delete Accounts By Customer**
 
-Customer Service <> Delete Customer
-
-    > Account Service <> Delete Accounts By Customer
-
-Customer Service <> Get Customer
+- Customer Service <> **Get Customer**
 
 ### Balance Service
 
-Balance Service <> Get Balance By Customer
+- Balance Service <> **Get Balance By Customer**
+    - Account Service <> **Get Accounts By Customer**
 
-    > Account Service <> Get Accounts By Customer
-
-Balance Service <> Get Balance History
+- Balance Service <> **Get Balance History**
 
 ### Notification Service
 
-Notification Service <> Notify
+- Notification Service <> **Notify**
+    - Account Service <> **Get Account**
+    - Customer Service <> **Get Customer**
 
-    > Account Service <> Get Account
-
-    > Customer Service <> Get Customer
-
-Notification Service <> Get Notification
+- Notification Service <> **Get Notification**
 
 ### Transaction Service
 
-Transaction Service <> Transfer Amount
+- Transaction Service <> **Transfer Amount**
+    - Account Service <> **Add To Balance**
+    - Account Service <> **Subtract From Balance**
 
-    > Account Service <> Add To Balance
+- Transaction Service <> **Transfer Amount And Notify**
+    - Account Service <> **Add To Balance**
+    - Account Service <> **Subtract From Balance**
+    - Notification Service <> **Notify**
+        - Account Service <> **Get Account**
+        - Customer Service <> **Get Customer**
 
-    > Account Service <> Subtract From Balance
-
-Transaction Service <> Transfer Amount And Notify
-
-    > Account Service <> Add To Balance
-
-    > Account Service <> Subtract From Balance
-
-    > Notification Service <> Notify
-
-        > Account Service <> Get Account
-        
-        > Customer Service <> Get Customer
-
-Transaction Service <> Get Transaction
+- Transaction Service <> **Get Transaction**
