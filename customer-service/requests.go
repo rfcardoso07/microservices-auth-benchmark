@@ -30,8 +30,9 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode != 200 {
-		return nil, errors.New("Response Status Code - " + strconv.Itoa(response.StatusCode))
+	statusCode := response.StatusCode
+	if statusCode != http.StatusOK && statusCode != http.StatusUnauthorized {
+		return nil, errors.New("Response has unexpected status code - " + strconv.Itoa(statusCode))
 	}
 
 	// Read the response body
