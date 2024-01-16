@@ -70,7 +70,7 @@ func sendAddToAccountRequest(accountID int, amount int, accountService string, u
 	}
 
 	if gin.IsDebugging() {
-		fmt.Printf("%+v\n", response)
+		fmt.Println(string(body))
 	}
 
 	return response, nil
@@ -109,7 +109,7 @@ func sendSubtractFromAccountRequest(accountID int, amount int, accountService st
 	}
 
 	if gin.IsDebugging() {
-		fmt.Printf("%+v\n", response)
+		fmt.Println(string(body))
 	}
 
 	return response, nil
@@ -146,7 +146,7 @@ func sendNotifyRequest(transactionID int, amount int, receiverID int, notificati
 	}
 
 	if gin.IsDebugging() {
-		fmt.Printf("%+v\n", response)
+		fmt.Println(string(body))
 	}
 
 	return response, nil
@@ -183,7 +183,7 @@ func sendAuthRequest(userID string, userPassword string, operation string, authS
 	}
 
 	if gin.IsDebugging() {
-		fmt.Printf("%+v\n", response)
+		fmt.Println(string(body))
 	}
 
 	return response, nil

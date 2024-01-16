@@ -69,7 +69,7 @@ func sendGetAccountsByCustomerRequest(customerID int, accountService string, use
 	}
 
 	if gin.IsDebugging() {
-		fmt.Printf("%+v\n", response)
+		fmt.Println(string(body))
 	}
 
 	return response, nil
@@ -106,7 +106,7 @@ func sendAuthRequest(userID string, userPassword string, operation string, authS
 	}
 
 	if gin.IsDebugging() {
-		fmt.Printf("%+v\n", response)
+		fmt.Println(string(body))
 	}
 
 	return response, nil
