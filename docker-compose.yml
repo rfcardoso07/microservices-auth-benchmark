@@ -107,6 +107,8 @@ services:
       - balance-database
     ports:
       - "8088:8088"
+    networks:
+      - app-net
     env_file:
       - balance-service/.env
     environment:
@@ -117,6 +119,8 @@ services:
     image: postgres:11.4
     ports:
       - "8089:5432"
+    networks:
+      - app-net
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
       POSTGRES_USER: admin
@@ -128,6 +132,8 @@ services:
       - auth-database
     ports:
       - "8090:8090"
+    networks:
+      - app-net
     env_file:
       - auth-service/.env
     environment:
@@ -137,6 +143,8 @@ services:
     image: postgres:11.4
     ports:
       - "8091:5432"
+    networks:
+      - app-net
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres.local:5432
       POSTGRES_USER: admin

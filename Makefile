@@ -31,6 +31,14 @@ migrate-auth-release:
 	$(MAKE) migrate-release
 	psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-release.sql
 
+add-users:
+	psql --username=admin --host=localhost --port=8081 --file=add-users.sql
+	psql --username=admin --host=localhost --port=8083 --file=add-users.sql
+	psql --username=admin --host=localhost --port=8085 --file=add-users.sql
+	psql --username=admin --host=localhost --port=8087 --file=add-users.sql
+	psql --username=admin --host=localhost --port=8089 --file=add-users.sql
+	psql --username=admin --host=localhost --port=8091 --file=add-users.sql
+
 noauth-debug:
 	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d customer-service
 	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d account-service

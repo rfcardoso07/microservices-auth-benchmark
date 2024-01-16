@@ -55,7 +55,7 @@ func (d database) registerNotificationInDatabase(transactionID int, receiverID i
 func (d database) getNotificationFromDatabase(notificationID int) (int, int, int, error) {
 	// Get transaction data from the transactions table
 	var transactionID, receiverID, amount int
-	row := d.DB.QueryRow("SELECT transaction_id, receiver_id, amount FROM notifications WHERE id = $1", notificationID)
+	row := d.DB.QueryRow("SELECT transaction_id, receiver_id, amount FROM notifications WHERE notification_id = $1", notificationID)
 	err := row.Scan(&transactionID, &receiverID, &amount)
 	if err != nil {
 		return 0, 0, 0, err

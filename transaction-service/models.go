@@ -28,8 +28,8 @@ type subtractFromAccountRequestPayload struct {
 
 type notifyRequestPayload struct {
 	TransactionID int `json:"transactionID"`
-	Amount        int `json:"amount"`
 	ReceiverID    int `json:"receiverID"`
+	Amount        int `json:"amount"`
 }
 
 type authRequestPayload struct {

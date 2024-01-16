@@ -115,11 +115,11 @@ func sendSubtractFromAccountRequest(accountID int, amount int, accountService st
 	return response, nil
 }
 
-func sendNotifyRequest(transactionID int, amount int, receiverID int, notificationService string, userID string, userPassword string) (notifyResponseBody, error) {
+func sendNotifyRequest(transactionID int, receiverID int, amount int, notificationService string, userID string, userPassword string) (notifyResponseBody, error) {
 	payload := notifyRequestPayload{
 		TransactionID: transactionID,
-		Amount:        amount,
 		ReceiverID:    receiverID,
+		Amount:        amount,
 	}
 
 	// Marshal the struct into a JSON-formatted byte slice

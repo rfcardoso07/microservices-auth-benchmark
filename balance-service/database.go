@@ -49,7 +49,7 @@ func (d *database) init() error {
 func (d database) registerBalanceInDatabase(customerID int, totalBalance int) error {
 	currentTime := time.Now()
 	// Insert data into the balances table
-	_, err := d.DB.Exec("INSERT INTO balances (customer_id, total_balance, registered_at) VALUES ($1, $2, $3)", totalBalance, currentTime)
+	_, err := d.DB.Exec("INSERT INTO balances (customer_id, total_balance, registered_at) VALUES ($1, $2, $3)", customerID, totalBalance, currentTime)
 	return err
 }
 
