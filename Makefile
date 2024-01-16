@@ -32,72 +32,72 @@ migrate-auth-release:
 	psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-release.sql
 
 noauth-debug:
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d customer-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d account-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d transaction-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d notification-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d balance-service
-	MODE=debug EDGE_AUTH=FALSE docker-compose up -d gateway
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d customer-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d account-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d transaction-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d notification-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d balance-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d gateway
 
 edge-debug:
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d customer-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d account-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d transaction-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d notification-service
-	MODE=debug PATTERN=NO_AUTH docker-compose up -d balance-service
-	MODE=debug EDGE_AUTH=TRUE docker-compose up -d gateway
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d customer-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d account-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d transaction-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d notification-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d balance-service
+	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d gateway
 
 centralized-debug:
-	MODE=debug PATTERN=CENTRALIZED docker-compose up -d customer-service
-	MODE=debug PATTERN=CENTRALIZED docker-compose up -d account-service
-	MODE=debug PATTERN=CENTRALIZED docker-compose up -d transaction-service
-	MODE=debug PATTERN=CENTRALIZED docker-compose up -d notification-service
-	MODE=debug PATTERN=CENTRALIZED docker-compose up -d balance-service
-	MODE=debug docker-compose up -d auth-service
-	MODE=debug EDGE_AUTH=FALSE docker-compose up -d gateway
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d customer-service
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d account-service
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE up -d transaction-service
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d notification-service
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d balance-service
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d auth-service
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d gateway
 
 decentralized-debug:
-	MODE=debug PATTERN=DECENTRALIZED docker-compose up -d customer-service
-	MODE=debug PATTERN=DECENTRALIZED docker-compose up -d account-service
-	MODE=debug PATTERN=DECENTRALIZED docker-compose up -d transaction-service
-	MODE=debug PATTERN=DECENTRALIZED docker-compose up -d notification-service
-	MODE=debug PATTERN=DECENTRALIZED docker-compose up -d balance-service
-	MODE=debug docker-compose up -d auth-service
-	MODE=debug EDGE_AUTH=FALSE docker-compose up -d gateway
+	MODE=debug PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d customer-service
+	MODE=debug PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d account-service
+	MODE=debug PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d transaction-service
+	MODE=debug PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d notification-service
+	MODE=debug PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d balance-service
+	MODE=debug PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d auth-service
+	MODE=debug PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d gateway
 
 noauth-release:
-	MODE=release PATTERN=NO_AUTH docker-compose up -d customer-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d account-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d transaction-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d notification-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d balance-service
-	MODE=release EDGE_AUTH=FALSE docker-compose up -d gateway
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d customer-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d account-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d transaction-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d notification-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d balance-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d gateway
 
 edge-release:
-	MODE=release PATTERN=NO_AUTH docker-compose up -d customer-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d account-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d transaction-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d notification-service
-	MODE=release PATTERN=NO_AUTH docker-compose up -d balance-service
-	MODE=release EDGE_AUTH=TRUE docker-compose up -d gateway
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d customer-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d account-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d transaction-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d notification-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d balance-service
+	MODE=release PATTERN=NO_AUTH EDGE_AUTH=TRUE docker-compose up -d gateway
 
 centralized-release:
-	MODE=release PATTERN=CENTRALIZED docker-compose up -d customer-service
-	MODE=release PATTERN=CENTRALIZED docker-compose up -d account-service
-	MODE=release PATTERN=CENTRALIZED docker-compose up -d transaction-service
-	MODE=release PATTERN=CENTRALIZED docker-compose up -d notification-service
-	MODE=release PATTERN=CENTRALIZED docker-compose up -d balance-service
-	MODE=release docker-compose up -d auth-service
-	MODE=release EDGE_AUTH=FALSE docker-compose up -d gateway
+	MODE=release PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d customer-service
+	MODE=release PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d account-service
+	MODE=release PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d transaction-service
+	MODE=release PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d notification-service
+	MODE=release PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d balance-service
+	MODE=release PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d auth-service
+	MODE=release PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d gateway
 
 decentralized-release:
-	MODE=release PATTERN=DECENTRALIZED docker-compose up -d customer-service
-	MODE=release PATTERN=DECENTRALIZED docker-compose up -d account-service
-	MODE=release PATTERN=DECENTRALIZED docker-compose up -d transaction-service
-	MODE=release PATTERN=DECENTRALIZED docker-compose up -d notification-service
-	MODE=release PATTERN=DECENTRALIZED docker-compose up -d balance-service
-	MODE=release docker-compose up -d auth-service
-	MODE=release EDGE_AUTH=FALSE docker-compose up -d gateway
+	MODE=release PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d customer-service
+	MODE=release PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d account-service
+	MODE=release PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d transaction-service
+	MODE=release PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d notification-service
+	MODE=release PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d balance-service
+	MODE=release PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d auth-service
+	MODE=release PATTERN=DECENTRALIZED EDGE_AUTH=FALSE docker-compose up -d gateway
 
 up-noauth:
 	$(MAKE) up-dbs

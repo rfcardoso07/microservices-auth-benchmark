@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
@@ -66,6 +69,10 @@ func sendAddToAccountRequest(accountID int, amount int, accountService string, u
 		return addToAccountResponseBody{}, err
 	}
 
+	if gin.IsDebugging() {
+		fmt.Printf("%+v\n", response)
+	}
+
 	return response, nil
 }
 
@@ -101,6 +108,10 @@ func sendSubtractFromAccountRequest(accountID int, amount int, accountService st
 		return subtractFromAccountResponseBody{}, err
 	}
 
+	if gin.IsDebugging() {
+		fmt.Printf("%+v\n", response)
+	}
+
 	return response, nil
 }
 
@@ -134,6 +145,10 @@ func sendNotifyRequest(transactionID int, amount int, receiverID int, notificati
 		return notifyResponseBody{}, err
 	}
 
+	if gin.IsDebugging() {
+		fmt.Printf("%+v\n", response)
+	}
+
 	return response, nil
 }
 
@@ -165,6 +180,10 @@ func sendAuthRequest(userID string, userPassword string, operation string, authS
 	if err != nil {
 		log.Printf("Error unmarshaling JSON: %v", err)
 		return authResponseBody{}, err
+	}
+
+	if gin.IsDebugging() {
+		fmt.Printf("%+v\n", response)
 	}
 
 	return response, nil

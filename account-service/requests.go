@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func performPostRequest(client *http.Client, url string, payload []byte) ([]byte, error) {
@@ -62,6 +65,10 @@ func sendAuthRequest(userID string, userPassword string, operation string, authS
 	if err != nil {
 		log.Printf("Error unmarshaling JSON: %v", err)
 		return authResponseBody{}, err
+	}
+
+	if gin.IsDebugging() {
+		fmt.Printf("%+v\n", response)
 	}
 
 	return response, nil
