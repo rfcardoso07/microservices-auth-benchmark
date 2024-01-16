@@ -3,10 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +29,10 @@ func performPostRequest(client *http.Client, url string, payload []byte) ([]byte
 		return nil, err
 	}
 	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return nil, errors.New("Response Status Code - " + strconv.Itoa(response.StatusCode))
+	}
 
 	// Read the response body
 	body, err := io.ReadAll(response.Body)
