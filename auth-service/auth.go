@@ -79,10 +79,10 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":        "success",
-			"authenticated":  authenticated,
-			"authorized":     authorized,
-			"accessGranted:": accessGranted,
+			"message":       "success",
+			"authenticated": authenticated,
+			"authorized":    authorized,
+			"accessGranted": accessGranted,
 		})
 	})
 

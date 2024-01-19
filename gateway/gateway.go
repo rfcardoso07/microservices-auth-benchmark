@@ -2,11 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strings"
+
+	_ "github.com/lib/pq"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,44 +30,44 @@ func main() {
 
 	// Define the target URLs for different paths
 	forwardURLs := map[string]string{
-		"/createCustomer":           customerServiceURL,
-		"/deleteCustomer":           customerServiceURL,
-		"/getCustomer":              customerServiceURL,
-		"/createAccount":            accountServiceURL,
-		"/deleteAccount":            accountServiceURL,
-		"/deleteAccountsByCustomer": accountServiceURL,
-		"/getAccount":               accountServiceURL,
-		"/getAccountsByCustomer":    accountServiceURL,
-		"/addToBalance":             accountServiceURL,
-		"/subtractFromBalance":      accountServiceURL,
-		"/transferAmount":           transactionServiceURL,
-		"/transferAmountAndNotify":  transactionServiceURL,
-		"/getTransaction":           transactionServiceURL,
-		"/notify":                   notificationServiceURL,
-		"/getNotification":          notificationServiceURL,
-		"/getBalanceByCustomer":     balanceServiceURL,
-		"/getBalanceHistory":        balanceServiceURL,
+		"createCustomer":           customerServiceURL,
+		"deleteCustomer":           customerServiceURL,
+		"getCustomer":              customerServiceURL,
+		"createAccount":            accountServiceURL,
+		"deleteAccount":            accountServiceURL,
+		"deleteAccountsByCustomer": accountServiceURL,
+		"getAccount":               accountServiceURL,
+		"getAccountsByCustomer":    accountServiceURL,
+		"addToBalance":             accountServiceURL,
+		"subtractFromBalance":      accountServiceURL,
+		"transferAmount":           transactionServiceURL,
+		"transferAmountAndNotify":  transactionServiceURL,
+		"getTransaction":           transactionServiceURL,
+		"notify":                   notificationServiceURL,
+		"getNotification":          notificationServiceURL,
+		"getBalanceByCustomer":     balanceServiceURL,
+		"getBalanceHistory":        balanceServiceURL,
 	}
 
 	// Define the operation types for different paths
 	operationTypes := map[string]string{
-		"/createCustomer":           "WRITE",
-		"/deleteCustomer":           "DELETE",
-		"/getCustomer":              "READ",
-		"/createAccount":            "WRITE",
-		"/deleteAccount":            "DELETE",
-		"/deleteAccountsByCustomer": "DELETE",
-		"/getAccount":               "READ",
-		"/getAccountsByCustomer":    "READ",
-		"/addToBalance":             "WRITE",
-		"/subtractFromBalance":      "WRITE",
-		"/transferAmount":           "WRITE",
-		"/transferAmountAndNotify":  "WRITE",
-		"/getTransaction":           "READ",
-		"/notify":                   "WRITE",
-		"/getNotification":          "READ",
-		"/getBalanceByCustomer":     "READ",
-		"/getBalanceHistory":        "READ",
+		"createCustomer":           "WRITE",
+		"deleteCustomer":           "DELETE",
+		"getCustomer":              "READ",
+		"createAccount":            "WRITE",
+		"deleteAccount":            "DELETE",
+		"deleteAccountsByCustomer": "DELETE",
+		"getAccount":               "READ",
+		"getAccountsByCustomer":    "READ",
+		"addToBalance":             "WRITE",
+		"subtractFromBalance":      "WRITE",
+		"transferAmount":           "WRITE",
+		"transferAmountAndNotify":  "WRITE",
+		"getTransaction":           "READ",
+		"notify":                   "WRITE",
+		"getNotification":          "READ",
+		"getBalanceByCustomer":     "READ",
+		"getBalanceHistory":        "READ",
 	}
 
 	// Create reverse proxies for each target URL
@@ -94,8 +98,8 @@ func main() {
 		defer d.DB.Close()
 
 		// Define a handler which enforces auth before forwarding requests to the appropriate services
-		forwardHandler := func(c *gin.Context) {
-			path := c.Request.URL.Path
+		authHandler := func(c *gin.Context) {
+			path := c.Param("path")
 			proxy, ok := proxies[path]
 			if !ok {
 				log.Printf("Could not find endpoint for path %s", path)
@@ -104,7 +108,7 @@ func main() {
 			}
 
 			// Extract userID and password from URL parameters
-			userID := c.Param("id")
+			userID := c.Param("userID")
 			userPassword := c.Param("password")
 
 			authenticated, authorized, accessGranted, err := d.authenticateAndAuthorize(userID, userPassword, operationTypes[path])
@@ -116,6 +120,8 @@ func main() {
 			if accessGranted {
 				// Forward the request to the corresponding target URL
 				log.Printf("Received request at path %s, forwarding it to %s", path, forwardURLs[path])
+				// Trim user ID and password from the request
+				c.Request.URL.Path = strings.TrimSuffix(c.Request.URL.Path, fmt.Sprintf("/%s/%s", userID, userPassword))
 				proxy.ServeHTTP(c.Writer, c.Request)
 			} else {
 				c.JSON(http.StatusUnauthorized, gin.H{
@@ -126,13 +132,13 @@ func main() {
 			}
 		}
 
-		// Associate the forwardHandler with wildcard route
-		router.POST("/:userID/:password", forwardHandler)
+		// Associate auth handler with wildcard route
+		router.POST("/:path/:userID/:password", authHandler)
 
 	} else {
 		// Define a basic handler that forwards requests to the appropriate services
 		forwardHandler := func(c *gin.Context) {
-			path := c.Request.URL.Path
+			path := c.Param("path")
 			proxy, ok := proxies[path]
 			if !ok {
 				log.Printf("Could not find endpoint for path %s", path)
@@ -145,8 +151,8 @@ func main() {
 			proxy.ServeHTTP(c.Writer, c.Request)
 		}
 
-		// Associate the forwardHandler with wildcard route
-		router.POST("/*path", forwardHandler)
+		// Associate forward handler with wildcard route
+		router.POST("/:path/:userID/:password", forwardHandler)
 	}
 
 	// Run the Gin gateway on port 8000

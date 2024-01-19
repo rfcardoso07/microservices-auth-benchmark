@@ -58,7 +58,7 @@ edge-debug:
 centralized-debug:
 	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d customer-service
 	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d account-service
-	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE up -d transaction-service
+	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d transaction-service
 	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d notification-service
 	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d balance-service
 	MODE=debug PATTERN=CENTRALIZED EDGE_AUTH=FALSE docker-compose up -d auth-service
