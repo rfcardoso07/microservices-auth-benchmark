@@ -398,24 +398,24 @@
 
 - **Delete Accounts By Customer** &rarr; `DELETE`
 
-- **Add To Balance** &rarr; `WRITE`
-
-- **Subtract From Balance** &rarr; `WRITE`
-
 - **Get Account** &rarr; `READ`
 
 - **Get Accounts By Customer** &rarr; `READ`
 
-- **Get Balance By Customer** &rarr; `READ`
+- **Add To Balance** &rarr; `WRITE`
 
-- **Get Balance History** &rarr; `READ`
-
-- **Notify** &rarr; `WRITE`
-
-- **Get Notification** &rarr; `READ`
+- **Subtract From Balance** &rarr; `WRITE`
 
 - **Transfer Amount** &rarr; `WRITE`
 
 - **Transfer Amount And Notify** &rarr; `WRITE`
 
 - **Get Transaction** &rarr; `READ`
+
+- **Notify** &rarr; `WRITE`
+
+- **Get Notification** &rarr; `READ`
+
+- **Get Balance By Customer** &rarr; `READ`
+
+- **Get Balance History** &rarr; `READ`
