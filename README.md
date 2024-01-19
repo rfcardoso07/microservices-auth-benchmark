@@ -330,56 +330,92 @@
 
 ### Account Service
 
-- Account Service <> **Create Account**
+- Account Service &rarr; **Create Account**
 
-- Account Service <> **Delete Account**
+- Account Service &rarr; **Delete Account**
 
-- Account Service <> **Delete Accounts By Customer**
+- Account Service &rarr; **Delete Accounts By Customer**
 
-- Account Service <> **Add To Balance**
+- Account Service &rarr; **Add To Balance**
 
-- Account Service <> **Subtract From Balance**
+- Account Service &rarr; **Subtract From Balance**
 
-- Account Service <> **Get Account**
+- Account Service &rarr; **Get Account**
 
-- Account Service <> **Get Accounts By Customer**
+- Account Service &rarr; **Get Accounts By Customer**
 
 ### Customer Service
 
-- Customer Service <> **Create Customer**
-    - Account Service <> **Create Account**
+- Customer Service &rarr; **Create Customer**
+    - Account Service &rarr; **Create Account**
 
-- Customer Service <> **Delete Customer**
-    - Account Service <> **Delete Accounts By Customer**
+- Customer Service &rarr; **Delete Customer**
+    - Account Service &rarr; **Delete Accounts By Customer**
 
-- Customer Service <> **Get Customer**
+- Customer Service &rarr; **Get Customer**
 
 ### Balance Service
 
-- Balance Service <> **Get Balance By Customer**
-    - Account Service <> **Get Accounts By Customer**
+- Balance Service &rarr; **Get Balance By Customer**
+    - Account Service &rarr; **Get Accounts By Customer**
 
-- Balance Service <> **Get Balance History**
+- Balance Service &rarr; **Get Balance History**
 
 ### Notification Service
 
-- Notification Service <> **Notify**
-    - Account Service <> **Get Account**
-    - Customer Service <> **Get Customer**
+- Notification Service &rarr; **Notify**
+    - Account Service &rarr; **Get Account**
+    - Customer Service &rarr; **Get Customer**
 
-- Notification Service <> **Get Notification**
+- Notification Service &rarr; **Get Notification**
 
 ### Transaction Service
 
-- Transaction Service <> **Transfer Amount**
-    - Account Service <> **Add To Balance**
-    - Account Service <> **Subtract From Balance**
+- Transaction Service &rarr; **Transfer Amount**
+    - Account Service &rarr; **Add To Balance**
+    - Account Service &rarr; **Subtract From Balance**
 
-- Transaction Service <> **Transfer Amount And Notify**
-    - Account Service <> **Add To Balance**
-    - Account Service <> **Subtract From Balance**
-    - Notification Service <> **Notify**
-        - Account Service <> **Get Account**
-        - Customer Service <> **Get Customer**
+- Transaction Service &rarr; **Transfer Amount And Notify**
+    - Account Service &rarr; **Add To Balance**
+    - Account Service &rarr; **Subtract From Balance**
+    - Notification Service &rarr; **Notify**
+        - Account Service &rarr; **Get Account**
+        - Customer Service &rarr; **Get Customer**
 
-- Transaction Service <> **Get Transaction**
+- Transaction Service &rarr; **Get Transaction**
+
+## Operation Types
+
+- **Create Customer** &rarr; `WRITE`
+
+- **Delete Customer** &rarr; `DELETE`
+
+- **Get Customer** &rarr; `READ`
+
+- **Create Account** &rarr; `WRITE`
+
+- **Delete Account** &rarr; `DELETE`
+
+- **Delete Accounts By Customer** &rarr; `DELETE`
+
+- **Add To Balance** &rarr; `WRITE`
+
+- **Subtract From Balance** &rarr; `WRITE`
+
+- **Get Account** &rarr; `READ`
+
+- **Get Accounts By Customer** &rarr; `READ`
+
+- **Get Balance By Customer** &rarr; `READ`
+
+- **Get Balance History** &rarr; `READ`
+
+- **Notify** &rarr; `WRITE`
+
+- **Get Notification** &rarr; `READ`
+
+- **Transfer Amount** &rarr; `WRITE`
+
+- **Transfer Amount And Notify** &rarr; `WRITE`
+
+- **Get Transaction** &rarr; `READ`
