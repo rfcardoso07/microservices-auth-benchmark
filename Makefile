@@ -1,3 +1,28 @@
+TAG:=1.0
+
+build-tag-push:
+	docker build --no-cache -t customer-service:${TAG} ./customer-service
+	docker build --no-cache -t account-service:${TAG} ./account-service
+	docker build --no-cache -t transaction-service:${TAG} ./transaction-service
+	docker build --no-cache -t notification-service:${TAG} ./notification-service
+	docker build --no-cache -t balance-service:${TAG} ./balance-service
+	docker build --no-cache -t auth-service:${TAG} ./auth-service
+	docker build --no-cache -t gateway:${TAG} ./gateway
+	docker tag customer-service:${TAG} rfcardoso07/customer-service:${TAG}
+	docker tag account-service:${TAG} rfcardoso07/account-service:${TAG}
+	docker tag transaction-service:${TAG} rfcardoso07/transaction-service:${TAG}
+	docker tag notification-service:${TAG} rfcardoso07/notification-service:${TAG}
+	docker tag balance-service:${TAG} rfcardoso07/balance-service:${TAG}
+	docker tag auth-service:${TAG} rfcardoso07/auth-service:${TAG}
+	docker tag gateway:${TAG} rfcardoso07/gateway:${TAG}
+	docker push rfcardoso07/customer-service:${TAG}
+	docker push rfcardoso07/account-service:${TAG}
+	docker push rfcardoso07/transaction-service:${TAG}
+	docker push rfcardoso07/notification-service:${TAG}
+	docker push rfcardoso07/balance-service:${TAG}
+	docker push rfcardoso07/auth-service:${TAG}
+	docker push rfcardoso07/gateway:${TAG}
+
 up-dbs:
 	docker-compose up -d customer-database
 	docker-compose up -d account-database
