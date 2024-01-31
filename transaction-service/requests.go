@@ -137,6 +137,9 @@ func sendNotifyRequest(transactionID int, receiverID int, amount int, notificati
 	}
 
 	url := "http://" + notificationService + "/notify"
+	if userID != "" && userPassword != "" {
+		url = url + "/" + userID + "/" + userPassword
+	}
 
 	body, err := performPostRequest(&http.Client{}, url, jsonPayload)
 	if err != nil {

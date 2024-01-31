@@ -151,7 +151,8 @@ func main() {
 			proxy.ServeHTTP(c.Writer, c.Request)
 		}
 
-		// Associate forward handler with wildcard route
+		// Associate forward handler with wildcard routes
+		router.POST("/:path", forwardHandler)
 		router.POST("/:path/:userID/:password", forwardHandler)
 	}
 
