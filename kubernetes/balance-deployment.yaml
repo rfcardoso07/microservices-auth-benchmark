@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: balance-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: balance-service
+  template:
+    metadata:
+      labels:
+        app: balance-service
+    spec:
+      containers:
+      - name: balance-service
+        image: rfcardoso07/balance-service:1.0
+        ports:
+        - containerPort: 8088
+        env:
+        - name: BALANCE_SERVICE_DATABASE_HOST
+          value: "balance-database"
+        - name: BALANCE_SERVICE_DATABASE_PORT
+          value: "5432"
+        - name: BALANCE_SERVICE_DATABASE_USER
+          value: "admin"
+        - name: BALANCE_SERVICE_DATABASE_PASSWORD
+          value: "admin"
+        - name: BALANCE_SERVICE_DATABASE_NAME
+          value: "admin"
+        - name: ACCOUNT_SERVICE_HOST_AND_PORT
+          value: "account-service:8082"
+        - name: AUTH_SERVICE_HOST_AND_PORT
+          value: "auth-service:8090"
+        - name: GIN_MODE
+          value: "release"
+        - name: APPLICATION_AUTH_PATTERN
+          value: "NO_AUTH"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: balance-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: balance-database
+  template:
+    metadata:
+      labels:
+        app: balance-database
+    spec:
+      containers:
+      - name: balance-database
+        image: postgres:11.4
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          value: "admin"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"

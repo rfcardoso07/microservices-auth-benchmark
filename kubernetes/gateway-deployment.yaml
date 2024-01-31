@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: rfcardoso07/gateway:1.1
+        ports:
+        - containerPort: 8000
+        env:
+        - name: GATEWAY_DATABASE_HOST
+          value: "auth-database"
+        - name: GATEWAY_DATABASE_PORT
+          value: "5432"
+        - name: GATEWAY_DATABASE_USER
+          value: "admin"
+        - name: GATEWAY_DATABASE_PASSWORD
+          value: "admin"
+        - name: GATEWAY_DATABASE_NAME
+          value: "admin"
+        - name: CUSTOMER_SERVICE_HOST_AND_PORT
+          value: "http://customer-service:8080"
+        - name: ACCOUNT_SERVICE_HOST_AND_PORT
+          value: "http://account-service:8082"
+        - name: TRANSACTION_SERVICE_URL
+          value: "http://transaction-service:8084"
+        - name: NOTIFICATION_SERVICE_HOST_AND_PORT
+          value: "http://notification-service:8086"
+        - name: BALANCE_SERVICE_URL
+          value: "http://balance-service:8088"
+        - name: GIN_MODE
+          value: "release"
+        - name: GATEWAY_AUTH
+          value: "FALSE"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"

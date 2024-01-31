@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - protocol: TCP
+      port: 8086
+      targetPort: 8086
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-database
+spec:
+  selector:
+    app: notification-database
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

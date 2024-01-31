@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transaction-service
+  template:
+    metadata:
+      labels:
+        app: transaction-service
+    spec:
+      containers:
+      - name: transaction-service
+        image: rfcardoso07/transaction-service:1.1
+        ports:
+        - containerPort: 8084
+        env:
+        - name: TRANSACTION_SERVICE_DATABASE_HOST
+          value: "transaction-database"
+        - name: TRANSACTION_SERVICE_DATABASE_PORT
+          value: "5432"
+        - name: TRANSACTION_SERVICE_DATABASE_USER
+          value: "admin"
+        - name: TRANSACTION_SERVICE_DATABASE_PASSWORD
+          value: "admin"
+        - name: TRANSACTION_SERVICE_DATABASE_NAME
+          value: "admin"
+        - name: ACCOUNT_SERVICE_HOST_AND_PORT
+          value: "account-service:8082"
+        - name: NOTIFICATION_SERVICE_HOST_AND_PORT
+          value: "notification-service:8086"
+        - name: AUTH_SERVICE_HOST_AND_PORT
+          value: "auth-service:8090"
+        - name: GIN_MODE
+          value: "release"
+        - name: APPLICATION_AUTH_PATTERN
+          value: "NO_AUTH"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transaction-database
+  template:
+    metadata:
+      labels:
+        app: transaction-database
+    spec:
+      containers:
+      - name: transaction-database
+        image: postgres:11.4
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          value: "admin"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"

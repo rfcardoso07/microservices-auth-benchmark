@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer-service
+  template:
+    metadata:
+      labels:
+        app: customer-service
+    spec:
+      containers:
+      - name: customer-service
+        image: rfcardoso07/customer-service:1.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: CUSTOMER_SERVICE_DATABASE_HOST
+          value: "customer-database"
+        - name: CUSTOMER_SERVICE_DATABASE_PORT
+          value: "5432"
+        - name: CUSTOMER_SERVICE_DATABASE_USER
+          value: "admin"
+        - name: CUSTOMER_SERVICE_DATABASE_PASSWORD
+          value: "admin"
+        - name: CUSTOMER_SERVICE_DATABASE_NAME
+          value: "admin"
+        - name: ACCOUNT_SERVICE_HOST_AND_PORT
+          value: "account-service:8082"
+        - name: AUTH_SERVICE_HOST_AND_PORT
+          value: "auth-service:8090"
+        - name: GIN_MODE
+          value: "release"
+        - name: APPLICATION_AUTH_PATTERN
+          value: "NO_AUTH"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer-database
+  template:
+    metadata:
+      labels:
+        app: customer-database
+    spec:
+      containers:
+      - name: customer-database
+        image: postgres:11.4
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          value: "admin"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-service
+  template:
+    metadata:
+      labels:
+        app: account-service
+    spec:
+      containers:
+      - name: account-service
+        image: rfcardoso07/account-service:1.0
+        ports:
+        - containerPort: 8082
+        env:
+        - name: ACCOUNT_SERVICE_DATABASE_HOST
+          value: "account-database"
+        - name: ACCOUNT_SERVICE_DATABASE_PORT
+          value: "5432"
+        - name: ACCOUNT_SERVICE_DATABASE_USER
+          value: "admin"
+        - name: ACCOUNT_SERVICE_DATABASE_PASSWORD
+          value: "admin"
+        - name: ACCOUNT_SERVICE_DATABASE_NAME
+          value: "admin"
+        - name: AUTH_SERVICE_HOST_AND_PORT
+          value: "auth-service:8090"
+        - name: GIN_MODE
+          value: "release"
+        - name: APPLICATION_AUTH_PATTERN
+          value: "NO_AUTH"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-database
+  template:
+    metadata:
+      labels:
+        app: account-database
+    spec:
+      containers:
+      - name: account-database
+        image: postgres:11.4
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          value: "admin"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"
