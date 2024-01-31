@@ -2,7 +2,7 @@ version: "3"
 
 services:
   customer-service:
-    build: ./customer-service
+    image: rfcardoso07/customer-service:1.0
     depends_on:
       - customer-database
     ports:
@@ -27,7 +27,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   account-service:
-    build: ./account-service
+    image: rfcardoso07/account-service:1.0
     depends_on:
       - account-database
     ports:
@@ -52,7 +52,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   transaction-service:
-    build: ./transaction-service
+    image: rfcardoso07/transaction-service:1.1
     depends_on:
       - transaction-database
     ports:
@@ -77,7 +77,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   notification-service:
-    build: ./notification-service
+    image: rfcardoso07/notification-service:1.0
     depends_on:
       - notification-database
     ports:
@@ -102,7 +102,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   balance-service:
-    build: ./balance-service
+    image: rfcardoso07/balance-service:1.0
     depends_on:
       - balance-database
     ports:
@@ -127,7 +127,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   auth-service:
-    build: ./auth-service
+    image: rfcardoso07/auth-service:1.0
     depends_on:
       - auth-database
     ports:
@@ -151,7 +151,7 @@ services:
       POSTGRES_PASSWORD: admin
 
   gateway:
-    build: ./gateway
+    image: rfcardoso07/gateway:1.1
     depends_on:
       - customer-service
       - account-service
