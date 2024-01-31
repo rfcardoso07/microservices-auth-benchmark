@@ -1,0 +1,140 @@
+Create Account              - DEPTH 1
+Create Customer             - DEPTH 2
+Transfer Amount             - DEPTH 3
+Transfer Amount And Notify  - DEPTH 6
+
+---------------------------------------------------------------------------------------------------- NO AUTH RELEASE
+
+--- Response Time Statistics ---
+Avg Response Time: 0.004548114914470928 seconds
+Max Response Time: 0.014237642288208008 seconds
+Std Dev Response Time: 0.0012098586445075724 seconds
+Successful Requests: 2186 out of 2186
+Success Rate: 100.0%
+Requests Per Second: 218.6
+
+--- Response Time Statistics ---
+Avg Response Time: 0.006364078246630155 seconds
+Max Response Time: 0.012910842895507812 seconds
+Std Dev Response Time: 0.0014709073333332805 seconds
+Successful Requests: 1560 out of 1560
+Success Rate: 100.0%
+Requests Per Second: 156.0
+
+--- Response Time Statistics ---
+Avg Response Time: 0.007895713949960376 seconds
+Max Response Time: 0.015006303787231445 seconds
+Std Dev Response Time: 0.00152749895348774 seconds
+Successful Requests: 1260 out of 1260
+Success Rate: 100.0%
+Requests Per Second: 126.0
+
+--- Response Time Statistics ---
+Avg Response Time: 0.011159865880199403 seconds
+Max Response Time: 0.023364782333374023 seconds
+Std Dev Response Time: 0.00221600544290334 seconds
+Successful Requests: 893 out of 893
+Success Rate: 100.0%
+Requests Per Second: 89.3
+
+---------------------------------------------------------------------------------------------------- EDGE RELEASE
+
+--- Response Time Statistics ---
+Avg Response Time: 0.004944808206885446 seconds
+Max Response Time: 0.009161949157714844 seconds
+Std Dev Response Time: 0.0012277930469973657 seconds
+Successful Requests: 2011 out of 2011
+Success Rate: 100.0%
+Requests Per Second: 201.1
+
+--- Response Time Statistics ---
+Avg Response Time: 0.006692984676104029 seconds
+Max Response Time: 0.014489889144897461 seconds
+Std Dev Response Time: 0.0013369761311967986 seconds
+Successful Requests: 1484 out of 1484
+Success Rate: 100.0%
+Requests Per Second: 148.4
+
+--- Response Time Statistics ---
+Avg Response Time: 0.007979555520040088 seconds
+Max Response Time: 0.01793074607849121 seconds
+Std Dev Response Time: 0.0012830371360618299 seconds
+Successful Requests: 1247 out of 1247
+Success Rate: 100.0%
+Requests Per Second: 124.7
+
+--- Response Time Statistics ---
+Avg Response Time: 0.011262109993541308 seconds
+Max Response Time: 0.0235137939453125 seconds
+Std Dev Response Time: 0.0013866120278204297 seconds
+Successful Requests: 885 out of 885
+Success Rate: 100.0%
+Requests Per Second: 88.5
+
+---------------------------------------------------------------------------------------------------- CENTRALIZED RELEASE
+
+--- Response Time Statistics ---
+Avg Response Time: 0.006392256602616209 seconds
+Max Response Time: 0.03476572036743164 seconds
+Std Dev Response Time: 0.002371448964986078 seconds
+Successful Requests: 1557 out of 1557
+Success Rate: 100.0%
+Requests Per Second: 155.7
+
+--- Response Time Statistics ---
+Avg Response Time: 0.008623866778281 seconds
+Max Response Time: 0.014217138290405273 seconds
+Std Dev Response Time: 0.0010575864707514254 seconds
+Successful Requests: 1152 out of 1152
+Success Rate: 100.0%
+Requests Per Second: 115.2
+
+--- Response Time Statistics ---
+Avg Response Time: 0.011010732966891968 seconds
+Max Response Time: 0.014181137084960938 seconds
+Std Dev Response Time: 0.0007218190000980645 seconds
+Successful Requests: 905 out of 905
+Success Rate: 100.0%
+Requests Per Second: 90.5
+
+--- Response Time Statistics ---
+Avg Response Time: 0.01647591197451349 seconds
+Max Response Time: 0.023168325424194336 seconds
+Std Dev Response Time: 0.0011528013189420316 seconds
+Successful Requests: 606 out of 606
+Success Rate: 100.0%
+Requests Per Second: 60.6
+
+---------------------------------------------------------------------------------------------------- DECENTRALIZED RELEASE
+
+--- Response Time Statistics ---
+Avg Response Time: 0.005092570919656045 seconds
+Max Response Time: 0.01032257080078125 seconds
+Std Dev Response Time: 0.0013474499214391304 seconds
+Successful Requests: 1953 out of 1953
+Success Rate: 100.0%
+Requests Per Second: 195.3
+
+--- Response Time Statistics ---
+Avg Response Time: 0.007951738168183472 seconds
+Max Response Time: 0.015536308288574219 seconds
+Std Dev Response Time: 0.0011932030244128755 seconds
+Successful Requests: 1249 out of 1249
+Success Rate: 100.0%
+Requests Per Second: 124.9
+
+--- Response Time Statistics ---
+Avg Response Time: 0.009338010766492776 seconds
+Max Response Time: 0.018393754959106445 seconds
+Std Dev Response Time: 0.0012698086775578758 seconds
+Successful Requests: 1066 out of 1066
+Success Rate: 100.0%
+Requests Per Second: 106.6
+
+--- Response Time Statistics ---
+Avg Response Time: 0.013641314043392071 seconds
+Max Response Time: 0.023655414581298828 seconds
+Std Dev Response Time: 0.0017323973788416307 seconds
+Successful Requests: 731 out of 731
+Success Rate: 100.0%
+Requests Per Second: 73.1
