@@ -1,5 +1,6 @@
 import requests
 import time
+import datetime
 import numpy as np
 import random
 import sys
@@ -29,6 +30,18 @@ def generate_random_customer_id():
 def generate_random_account_id():
     return random.choice(account_ids)
 
+def generate_random_customer_id_and_remove():
+    global customer_ids
+    id = random.choice(customer_ids)
+    customer_ids.remove(id)
+    return id
+
+def generate_random_account_id_and_remove():
+    global account_ids
+    id = random.choice(account_ids)
+    account_ids.remove(id)
+    return id
+
 def generate_random_transaction_id():
     return random.choice(transaction_ids)
 
@@ -51,7 +64,7 @@ def create_customer_body():
 
 def delete_customer_body():
     return {
-            "customerID": generate_random_customer_id()
+            "customerID": generate_random_customer_id_and_remove()
     }
 
 def get_customer_body():
@@ -61,17 +74,17 @@ def get_customer_body():
 
 def create_account_body():
     return {
-            "customerID": generate_random_customer_id()
+            "customerID": generate_random_customer_id_and_remove()
     }
 
 def delete_account_body():
     return {
-            "accountID": generate_random_account_id()
+            "accountID": generate_random_account_id_and_remove()
     }
 
 def delete_accounts_by_customer_body():
     return {
-            "customerID": generate_random_customer_id()
+            "customerID": generate_random_customer_id_and_remove()
     }
 
 def get_account_body():
@@ -129,7 +142,7 @@ def get_notification_body():
 
 def get_balance_by_customer_body():
     return {
-            "customerID": generate_random_customer_id()
+            "customerID": generate_random_customer_id_and_remove()
     }
 
 def get_balance_history_body():
@@ -163,6 +176,18 @@ endpoint_bodies = {
 
 ## Functions for making API calls and measuring response times
 
+def fill_database_with_accounts(number_of_accounts: int, url: str):
+    while number_of_accounts:
+        json_data = create_account_body()
+        try:
+            response = requests.post(url, json=json_data)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+        except Exception as e:
+            print(f"Request for {url} with JSON {json_data} failed: {str(e)}")
+            sys.exit(1)
+
+    return
+
 def get_response_time(url: str, json_data: dict):
     start_time = time.time()
     try:
@@ -181,7 +206,7 @@ def measure_response_times(number_of_requests: int, app_url: str, endpoint: str,
     start_time = time.time()
 
     while number_of_requests:
-        response_time = get_response_time(url, endpoint_bodies[endpoint]())
+        response_time = get_response_time(app_url, endpoint_bodies[endpoint]())
         response_times.append(response_time)
         number_of_requests -= 1
 
@@ -210,27 +235,64 @@ def measure_response_times(number_of_requests: int, app_url: str, endpoint: str,
 
 ## Main code
 
-if __name__ == "__main__":
-    app_version = "noauth"
-    number_of_requests = 100
-    export_url = "webhook.site"
+app_version = "noauth"
+number_of_requests = 100
+export_url = "webhook.site"
+valid_user = "john"
+valid_user_password = ""
+invalid_user = ""
+invalid_user_password = ""
 
-    url = "http://localhost:8000/createAccount/john/12345"
-    #url = "http://localhost:8000/createAccount"
-    use_randomized_body = "createAccount"
-    measure_response_times(url, timeout, use_randomized_body)
+customer_ids = [i for i in range(1, number_of_requests + 1)]
+account_ids = [i for i in range(1, number_of_requests + 1)]
+transaction_ids = [i for i in range(1, number_of_requests + 1)]
+notification_ids = [i for i in range(1, number_of_requests + 1)]
 
-    url = "http://localhost:8000/createCustomer/john/12345"
-    #url = "http://localhost:8000/createCustomer"
-    use_randomized_body = "createCustomer"
-    measure_response_times(url, timeout, use_randomized_body)
+ordered_endpoints = [
+    "createCustomer",
+    "getCustomer",
+    "createAccount",
+    "getAccount",
+    "getAccountsByCustomer",
+    "addToAccount",
+    "subtractFromAccount",
+    "transferAmount",
+    "transferAmountAndNotify",
+    "getTransaction",
+    "notify",
+    "getNotification",
+    "getBalanceByCustomer",
+    "getBalanceHistory",
+    "deleteCustomer",
+    "deleteAccount",
+    "deleteAccountsByCustomer"
+]
 
-    url = "http://localhost:8000/transferAmount/john/12345"
-    #url = "http://localhost:8000/transferAmount"
-    use_randomized_body = "transferAmount"
-    measure_response_times(url, timeout, use_randomized_body)
+if app_version == "noauth":
+    for endpoint in ordered_endpoints:
 
-    url = "http://localhost:8000/transferAmountAndNotify/john/12345"
-    #url = "http://localhost:8000/transferAmountAndNotify"
-    use_randomized_body = "transferAmountAndNotify"
-    measure_response_times(url, timeout, use_randomized_body)
+        if endpoint == "deleteAccount" or endpoint == "deleteAccountsByCustomer":
+            ## need to fill DB again before running these
+            print(f"Filling DB before running {endpoint}...")
+            fill_database_with_accounts(number_of_requests, "http://localhost:8000/createAccount")
+
+        print(f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        app_url = f"http://localhost:8000/{endpoint}"
+        measure_response_times(number_of_requests, app_url, endpoint, app_version, export_url)
+        print(f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+        if endpoint == "createAccount" or endpoint == "getBalanceByCustomer":
+            ## need to restore customer IDs list after running these
+            customer_ids = [i for i in range(1, number_of_requests + 1)]
+else:
+    for endpoint in ordered_endpoints:
+
+        if endpoint == "deleteAccount" or endpoint == "deleteAccountsByCustomer":
+            ## need to fill DB again before running these
+            print(f"Filling DB before running {endpoint}...")
+            fill_database_with_accounts(number_of_requests, f"http://localhost:8000/createAccount/{valid_user}/{valid_user_password}")
+
+        print(f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        app_url = f"http://localhost:8000/{endpoint}/{valid_user}/{valid_user_password}"
+        measure_response_times(number_of_requests, app_url, endpoint, app_version, export_url)
+        print(f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
