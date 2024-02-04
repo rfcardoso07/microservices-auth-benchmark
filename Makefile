@@ -35,34 +35,34 @@ up-all-dbs:
 	docker-compose up -d auth-database
 
 migrate-debug:
-	psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate-debug.sql
-	psql --username=admin --host=localhost --port=8083 --file=account-service/migrate-debug.sql
-	psql --username=admin --host=localhost --port=8085 --file=transaction-service/migrate-debug.sql
-	psql --username=admin --host=localhost --port=8087 --file=notification-service/migrate-debug.sql
-	psql --username=admin --host=localhost --port=8089 --file=balance-service/migrate-debug.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate-debug.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=account-service/migrate-debug.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=transaction-service/migrate-debug.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=notification-service/migrate-debug.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=balance-service/migrate-debug.sql
 	
 migrate-auth-debug:
 	$(MAKE) migrate-debug
-	psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-debug.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-debug.sql
 
 migrate-release:
-	psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate-release.sql
-	psql --username=admin --host=localhost --port=8083 --file=account-service/migrate-release.sql
-	psql --username=admin --host=localhost --port=8085 --file=transaction-service/migrate-release.sql
-	psql --username=admin --host=localhost --port=8087 --file=notification-service/migrate-release.sql
-	psql --username=admin --host=localhost --port=8089 --file=balance-service/migrate-release.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate-release.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=account-service/migrate-release.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=transaction-service/migrate-release.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=notification-service/migrate-release.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=balance-service/migrate-release.sql
 
 migrate-auth-release:
 	$(MAKE) migrate-release
-	psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-release.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-release.sql
 
 add-users:
-	psql --username=admin --host=localhost --port=8081 --file=add-users.sql
-	psql --username=admin --host=localhost --port=8083 --file=add-users.sql
-	psql --username=admin --host=localhost --port=8085 --file=add-users.sql
-	psql --username=admin --host=localhost --port=8087 --file=add-users.sql
-	psql --username=admin --host=localhost --port=8089 --file=add-users.sql
-	psql --username=admin --host=localhost --port=8091 --file=add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=add-users.sql
 
 noauth-debug:
 	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d customer-service
