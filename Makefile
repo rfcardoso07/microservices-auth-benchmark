@@ -41,26 +41,26 @@ clean-dbs:
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=notification-service/clean.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=balance-service/clean.sql
 
-migrate-debug:
+migrate-for-debug:
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate-debug.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=account-service/migrate-debug.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=transaction-service/migrate-debug.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=notification-service/migrate-debug.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=balance-service/migrate-debug.sql
 	
-migrate-auth-debug:
-	$(MAKE) migrate-debug
+migrate-for-auth-debug:
+	$(MAKE) migrate-for-debug
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-debug.sql
 
-migrate-release:
+migrate-for-release:
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate-release.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=account-service/migrate-release.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=transaction-service/migrate-release.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=notification-service/migrate-release.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=balance-service/migrate-release.sql
 
-migrate-auth-release:
-	$(MAKE) migrate-release
+migrate-for-auth-release:
+	$(MAKE) migrate-for-release
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-release.sql
 
 add-users:

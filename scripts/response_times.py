@@ -251,13 +251,14 @@ def measure_response_times(
         "max response time": max_response_time,
         "avg response time": avg_response_time,
         "std dev response time": std_dev_response_time,
+        "elapsed time": elapsed_time,
         "requests per second": (len(response_times) / elapsed_time),
     }
 
     export_response = requests.post(export_url, json=stats)
     export_response.raise_for_status()
 
-    return
+    return stats
 
 
 def measure_response_times_randomizing_validity(
@@ -301,13 +302,14 @@ def measure_response_times_randomizing_validity(
         "max response time": max_response_time,
         "avg response time": avg_response_time,
         "std dev response time": std_dev_response_time,
+        "elapsed time": elapsed_time,
         "requests per second": (len(response_times) / elapsed_time),
     }
 
     export_response = requests.post(export_url, json=stats)
     export_response.raise_for_status()
 
-    return
+    return stats
 
 
 ## Main code
@@ -369,15 +371,16 @@ if app_version == "noauth":
             ]
 
         print(
-            f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
         )
         app_url = f"{host}/{endpoint}"
-        measure_response_times(
+        stats = measure_response_times(
             number_of_requests, app_url, endpoint, app_version, auth, export_url
         )
         print(
-            f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
         )
+        print(stats)
 
         if endpoint in [
             "createAccount",
@@ -420,15 +423,16 @@ else:
                 ]
 
             print(
-                f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
             app_url = f"{host}/{endpoint}/{valid_user}/{valid_user_password}"
-            measure_response_times(
+            stats = measure_response_times(
                 number_of_requests, app_url, endpoint, app_version, auth, export_url
             )
             print(
-                f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
+            print(stats)
 
             if endpoint in [
                 "createAccount",
@@ -459,15 +463,16 @@ else:
                 ]
 
             print(
-                f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
             app_url = f"{host}/{endpoint}/{invalid_user}/{invalid_user_password}"
-            measure_response_times(
+            stats = measure_response_times(
                 number_of_requests, app_url, endpoint, app_version, auth, export_url
             )
             print(
-                f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
+            print(stats)
 
             if endpoint in [
                 "createAccount",
@@ -518,13 +523,13 @@ else:
                 ]
 
             print(
-                f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Measuring for {endpoint} with {app_version} version started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
             app_invalid_url = (
                 f"{host}/{endpoint}/{invalid_user}/{invalid_user_password}"
             )
             app_valid_url = f"{host}/{endpoint}/{valid_user}/{valid_user_password}"
-            measure_response_times_randomizing_validity(
+            stats = measure_response_times_randomizing_validity(
                 number_of_requests,
                 app_invalid_url,
                 app_valid_url,
@@ -534,8 +539,9 @@ else:
                 export_url,
             )
             print(
-                f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
+            print(stats)
 
             if endpoint in [
                 "createAccount",
