@@ -4,6 +4,10 @@
 
 ![Architecture](architecture.png)
 
+## Auth Mechanism
+
+![Auth](auth.png)
+
 ## Service Endpoints
 
 ### Customer Service
