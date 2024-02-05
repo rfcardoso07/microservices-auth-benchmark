@@ -28,13 +28,13 @@ spec:
           value: "admin"
         - name: GATEWAY_DATABASE_NAME
           value: "admin"
-        - name: CUSTOMER_SERVICE_HOST_AND_PORT
+        - name: CUSTOMER_SERVICE_URL
           value: "http://customer-service:8080"
-        - name: ACCOUNT_SERVICE_HOST_AND_PORT
+        - name: ACCOUNT_SERVICE_URL
           value: "http://account-service:8082"
         - name: TRANSACTION_SERVICE_URL
           value: "http://transaction-service:8084"
-        - name: NOTIFICATION_SERVICE_HOST_AND_PORT
+        - name: NOTIFICATION_SERVICE_URL
           value: "http://notification-service:8086"
         - name: BALANCE_SERVICE_URL
           value: "http://balance-service:8088"
@@ -44,8 +44,8 @@ spec:
           value: "FALSE"
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "250m"
+            memory: "1Gi"
+            cpu: "1"
           limits:
-            memory: "128Mi"
-            cpu: "500m"
+            memory: "1Gi"
+            cpu: "1"

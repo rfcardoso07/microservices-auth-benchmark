@@ -34,6 +34,13 @@ up-all-dbs:
 	$(MAKE) up-dbs
 	docker-compose up -d auth-database
 
+clean-dbs:
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=customer-service/clean.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=account-service/clean.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=transaction-service/clean.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=notification-service/clean.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=balance-service/clean.sql
+
 migrate-debug:
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=customer-service/migrate-debug.sql
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=account-service/migrate-debug.sql
@@ -57,12 +64,12 @@ migrate-auth-release:
 	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=auth-service/migrate-release.sql
 
 add-users:
-	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=add-users.sql
-	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=add-users.sql
-	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=add-users.sql
-	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=add-users.sql
-	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=add-users.sql
-	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8081 --file=scripts/add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8083 --file=scripts/add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8085 --file=scripts/add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8087 --file=scripts/add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8089 --file=scripts/add-users.sql
+	PGPASSWORD=admin psql --username=admin --host=localhost --port=8091 --file=scripts/add-users.sql
 
 noauth-debug:
 	MODE=debug PATTERN=NO_AUTH EDGE_AUTH=FALSE docker-compose up -d customer-service

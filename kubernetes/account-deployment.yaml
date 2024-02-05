@@ -36,11 +36,11 @@ spec:
           value: "NO_AUTH"
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "250m"
+            memory: "1Gi"
+            cpu: "1"
           limits:
-            memory: "128Mi"
-            cpu: "500m"
+            memory: "1Gi"
+            cpu: "1"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -68,8 +68,8 @@ spec:
           value: "admin"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "500m"
+            memory: "1Gi"
+            cpu: "1"
           limits:
-            memory: "512Mi"
+            memory: "1Gi"
             cpu: "1"

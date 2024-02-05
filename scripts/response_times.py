@@ -1,4 +1,5 @@
 import datetime
+import os
 import random
 import sys
 import time
@@ -311,11 +312,11 @@ def measure_response_times_randomizing_validity(
 
 ## Main code
 
-app_version = "noauth"
-auth = "valid"
-number_of_requests = 10
-host = "http://localhost:8000"
-export_url = "http://localhost:5000"
+app_version = os.getenv("APP_VERSION")
+auth = os.getenv("CREDENTIALS")
+number_of_requests = int(os.getenv("NUMBER_OF_REQUESTS"))
+host = os.getenv("GATEWAY_URL")
+export_url = os.getenv("EXPORT_URL")
 
 valid_user = "john"
 valid_user_password = "12345"

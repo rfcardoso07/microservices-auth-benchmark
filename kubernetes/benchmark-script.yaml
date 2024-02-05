@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: benchmark-script
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: benchmark-script
+  template:
+    metadata:
+      labels:
+        app: benchmark-script
+    spec:
+      containers:
+      - name: benchmark-script
+        image: rfcardoso07/benchmark-script:1.0
+        env:
+        - name: APP_VERSION
+          value: "noauth"
+        - name: CREDENTIALS
+          value: "valid"
+        - name: NUMBER_OF_REQUESTS
+          value: "10000"
+        - name: GATEWAY_URL
+          value: "http://gateway:8000"
+        - name: EXPORT_URL
+          value: "https://webhook.site"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
