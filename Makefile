@@ -158,3 +158,35 @@ up-decentralized:
 	$(MAKE) up-all-dbs
 	$(MAKE) migrate-auth-release
 	$(MAKE) decentralized-release
+
+kube-apply:
+	kubectl apply -f kubernetes/customer-deployment.yaml
+	kubectl apply -f kubernetes/customer-service.yaml
+	kubectl apply -f kubernetes/account-deployment.yaml
+	kubectl apply -f kubernetes/account-service.yaml
+	kubectl apply -f kubernetes/transaction-deployment.yaml
+	kubectl apply -f kubernetes/transaction-service.yaml
+	kubectl apply -f kubernetes/notification-deployment.yaml
+	kubectl apply -f kubernetes/notification-service.yaml
+	kubectl apply -f kubernetes/balance-deployment.yaml
+	kubectl apply -f kubernetes/balance-service.yaml
+	kubectl apply -f kubernetes/auth-deployment.yaml
+	kubectl apply -f kubernetes/auth-service.yaml
+	kubectl apply -k kubernetes/gateway-deployment.yaml
+	kubectl apply -k kubernetes/gateway-service.yaml
+
+kube-delete:
+	kubectl delete deployment customer-service
+	kubectl delete service customer-service
+	kubectl delete deployment account-service
+	kubectl delete service account-service
+	kubectl delete deployment transaction-service
+	kubectl delete service transaction-service
+	kubectl delete deployment notification-service
+	kubectl delete service notification-service
+	kubectl delete deployment balance-service
+	kubectl delete service balance-service
+	kubectl delete deployment auth-service
+	kubectl delete service auth-service
+	kubectl delete deployment gateway
+	kubectl delete service gateway

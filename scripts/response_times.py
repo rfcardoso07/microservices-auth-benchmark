@@ -1,5 +1,5 @@
 import datetime
-import os
+import json
 import random
 import sys
 import time
@@ -229,10 +229,18 @@ def measure_response_times(
     response_times = []
     start_time = time.time()
 
+    i = 0
+
     while number_of_requests:
         response_time = get_response_time(app_url, endpoint_bodies[endpoint]())
         response_times.append(response_time)
         number_of_requests -= 1
+        i += 1
+        if (i % 1000) == 0:
+            print(f"Reached {i} requests...")
+            if i == 1000:
+                # Start measuring resource consumption
+                _ = requests.post(f"http://localhost:5000/start/{app_version}/{endpoint}")
 
     elapsed_time = time.time() - start_time
 
@@ -255,8 +263,8 @@ def measure_response_times(
         "requests per second": (len(response_times) / elapsed_time),
     }
 
-    export_response = requests.post(export_url, json=stats)
-    export_response.raise_for_status()
+    # export_response = requests.post(export_url, json=stats)
+    # export_response.raise_for_status()
 
     return stats
 
@@ -306,19 +314,19 @@ def measure_response_times_randomizing_validity(
         "requests per second": (len(response_times) / elapsed_time),
     }
 
-    export_response = requests.post(export_url, json=stats)
-    export_response.raise_for_status()
+    # export_response = requests.post(export_url, json=stats)
+    # export_response.raise_for_status()
 
     return stats
 
 
 ## Main code
 
-app_version = os.getenv("APP_VERSION")
-auth = os.getenv("CREDENTIALS")
-number_of_requests = int(os.getenv("NUMBER_OF_REQUESTS"))
-host = os.getenv("GATEWAY_URL")
-export_url = os.getenv("EXPORT_URL")
+app_version = "decentralized"
+auth = "valid"
+number_of_requests = 15000
+host = "http://localhost:8000"
+export_url = "http://webhook.site"
 
 valid_user = "john"
 valid_user_password = "12345"
@@ -377,6 +385,10 @@ if app_version == "noauth":
         stats = measure_response_times(
             number_of_requests, app_url, endpoint, app_version, auth, export_url
         )
+        # Write the JSON data to the file
+        with open("times.log", "a") as file:
+            file.write(json.dumps(stats) + "\n")
+            file.close()
         print(
             f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
         )
@@ -429,6 +441,10 @@ else:
             stats = measure_response_times(
                 number_of_requests, app_url, endpoint, app_version, auth, export_url
             )
+            # Write the JSON data to the file
+            with open("times.log", "a") as file:
+                file.write(json.dumps(stats) + "\n")
+                file.close()
             print(
                 f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
@@ -469,6 +485,10 @@ else:
             stats = measure_response_times(
                 number_of_requests, app_url, endpoint, app_version, auth, export_url
             )
+            # Write the JSON data to the file
+            with open("times.log", "a") as file:
+                file.write(json.dumps(stats) + "\n")
+                file.close()
             print(
                 f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )
@@ -538,6 +558,10 @@ else:
                 auth,
                 export_url,
             )
+            # Write the JSON data to the file
+            with open("times.log", "a") as file:
+                file.write(json.dumps(stats) + "\n")
+                file.close()
             print(
                 f"Measuring for {endpoint} with {app_version} version finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
             )

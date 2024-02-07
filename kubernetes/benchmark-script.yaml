@@ -14,14 +14,14 @@ spec:
     spec:
       containers:
       - name: benchmark-script
-        image: rfcardoso07/benchmark-script:1.0
+        image: rfcardoso07/benchmark-script:1.1
         env:
         - name: APP_VERSION
           value: "noauth"
         - name: CREDENTIALS
           value: "valid"
         - name: NUMBER_OF_REQUESTS
-          value: "10000"
+          value: "20000"
         - name: GATEWAY_URL
           value: "http://gateway:8000"
         - name: EXPORT_URL

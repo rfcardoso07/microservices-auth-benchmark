@@ -12,7 +12,7 @@ DECLARE
     user_id_prefix VARCHAR(10) := 'user';
     user_password_length INTEGER := 8;
 BEGIN
-    FOR i IN 1..10000 LOOP
+    FOR i IN 1..100000 LOOP
         INSERT INTO public.users (user_id, user_password, can_read, can_write, can_delete)
         VALUES (
             user_id_prefix || i,
